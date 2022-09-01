@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wwp.mapper.DevChargerMapper">
+
+
+    <insert id="add" parameterType="com.wwp.entity.DevCharger">
+        INSERT INTO dev_charger set id=#{id} ,serial_num=#{serialNum},depart_id=#{departId},`type`=#{type},plugs=#{plugs},model_code=#{modelCode},
+                                    plug_status=#{plugStatus}
+    </insert>
+
+    <select id="getDevCharger" resultType="com.wwp.entity.DevCharger">
+		select * from  dev_charger where serial_num = #{serialNum}
+	</select>
+
+    <update id="updateTime">
+        update dev_charger
+        set   update_time=#{updateTime}
+        where serial_num = #{serialNum}
+    </update>
+
+</mapper>

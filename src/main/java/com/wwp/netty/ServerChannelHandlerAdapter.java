@@ -2,11 +2,15 @@ package com.wwp.netty;
 
 // 记录调用方法的元信息的类
 import com.wwp.devices.YlcDeviceMap;
-import com.wwp.model.YlcMessage;
-import io.netty.channel.ChannelHandlerAdapter;
+import com.wwp.model.Session;
+import com.wwp.model.YlcDevMsg;
+import com.wwp.model.YlcResult;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.timeout.IdleStateEvent;
+import io.netty.util.AttributeKey;
+
+import java.nio.channels.SeekableByteChannel;
 
 
 /**
@@ -43,19 +47,23 @@ public class ServerChannelHandlerAdapter extends ChannelInboundHandlerAdapter {
      //   System.out.println("len: "+byteBuf.readableBytes());
 
         System.out.println("收到客户端" + ctx.channel().remoteAddress()+" "+Thread.currentThread());
-        if(msg instanceof YlcMessage){
-            YlcMessage ylcMessage = (YlcMessage) msg;
-            if(ylcMessage.getSuccess()){
-                System.out.println(" id: " + ylcMessage.getSerialId());
+        if(msg instanceof YlcResult){
+            YlcResult result = (YlcResult) msg;
+            YlcDevMsg ylcDevMsg = result.getYlcDevMsg();
 
-                if(!YlcDeviceMap.exist(ylcMessage.getSerialId())){
-                    YlcDeviceMap.put(ylcMessage.getSerialId(),ctx.channel());
-                    //ctx.channel().attr().set();
+            if(result.getSuccess()){
+                System.out.println(" id: " + ylcDevMsg.getSerialId());
+
+                if(!YlcDeviceMap.exist(ylcDevMsg.getSerialId())){
+                    YlcDeviceMap.put(ylcDevMsg.getSerialId(),new Session(ctx.channel()));
+
+                    //AttributeKey<Session> sessionIdKey = AttributeKey.valueOf(ylcDevMsg.getSerialId());
+                    //ctx.channel().attr(sessionIdKey).set(new Session(ctx.channel()));
                 }
                 ctx.fireChannelRead(msg);
                // ctx.pipeline(). businessGroup.
             }
-            else  System.out.println(" error: " + ylcMessage.getError());
+            else  System.out.println(" error: " + result.getMessage());
         }
 
     }

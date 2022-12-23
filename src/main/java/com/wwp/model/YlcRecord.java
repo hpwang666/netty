@@ -26,21 +26,27 @@ public class YlcRecord {
     private long fee3LossKwh;
     private long fee3Money;
  */
-    private long recordStartKwh;
-    private long recordEndKwh;
-    private long recordTotalKwh;
-    private long lossTotalKwh;
-    private long totalCost;//所有花费
+    //对尖  电量   电价  计损  金额 共16个字节进行base64编码
+    private String fee0All;
+    private String fee1All;
+    private String fee2All;
+    private String fee3All;
+
+
+    private String recordStartKwh;
+    private String recordEndKwh;
+    private String recordTotalKwh;
+    private String lossTotalKwh;//计损总电量
+    private String totalCost;//所有花费
 
     //交易方式 0x01:app    0x02:card  0x04:离线卡启东  0x05:vin码
     private Integer tradeType;
 
+    private Date businessDate;//交易日期时间
 
+    private Integer overType; //停止原因
 
-    private String recordFee0;
-    private String recordFee1;
-    private String recordFee2;
-    private String recordFee3;
+    private String physId; //物理卡号
 
     public YlcRecord()
     {
@@ -50,7 +56,6 @@ public class YlcRecord {
     public void setStartTime(Date startTime) {
         this.startTime = startTime;
     }
-
     public Date getStartTime() {
         return startTime;
     }
@@ -58,73 +63,78 @@ public class YlcRecord {
     public void setEndTime(Date endTime) {
         this.endTime = endTime;
     }
-
     public Date getEndTime() {
         return endTime;
     }
 
-    public void setRecordStartKwh(long recordStartKwh) {
+    public void setFee0All(String fee0All) {
+        this.fee0All = fee0All;
+    }
+    public String getFee0All() {
+        return fee0All;
+    }
+
+    public void setFee1All(String fee1All) {
+        this.fee1All = fee1All;
+    }
+    public String getFee1All() {
+        return fee1All;
+    }
+
+    public void setFee2All(String fee2All) {
+        this.fee2All = fee2All;
+    }
+    public String getFee2All() {
+        return fee2All;
+    }
+
+    public void setFee3All(String fee3All) {
+        this.fee3All = fee3All;
+    }
+    public String getFee3All() {
+        return fee3All;
+    }
+
+    public void setRecordStartKwh(String recordStartKwh) {
         this.recordStartKwh = recordStartKwh;
     }
-    public long getRecordStartKwh() {
+    public String getRecordStartKwh() {
         return recordStartKwh;
     }
 
-    public void setRecordEndKwh(long recordEndKwh) {
+    public void setRecordEndKwh(String recordEndKwh) {
         this.recordEndKwh = recordEndKwh;
     }
-    public long getRecordEndKwh() {
+    public String getRecordEndKwh() {
         return recordEndKwh;
     }
 
-    public void setRecordTotalKwh(long recordTotalKwh) {
+    public void setRecordTotalKwh(String recordTotalKwh) {
         this.recordTotalKwh = recordTotalKwh;
     }
-    public long getRecordTotalKwh() {
+    public String getRecordTotalKwh() {
         return recordTotalKwh;
     }
 
-    public void setLossTotalKwh(long lossTotalKwh) {
+    public void setLossTotalKwh(String lossTotalKwh) {
         this.lossTotalKwh = lossTotalKwh;
     }
-    public long getLossTotalKwh() {
+    public String getLossTotalKwh() {
         return lossTotalKwh;
     }
 
-    public void setTotalCost(long totalCost) {
+    public void setTotalCost(String totalCost) {
         this.totalCost = totalCost;
     }
-    public long getTotalCost() {
+    public String getTotalCost() {
         return totalCost;
     }
 
-    public void setRecordFee0(String recordFee0) {
-        this.recordFee0 = recordFee0;
+    public void setPhysId(String physId) {
+        this.physId = physId;
     }
-    public String getRecordFee0() {
-        return recordFee0;
-    }
-
-    public void setRecordFee1(String recordFee1) {
-        this.recordFee1 = recordFee1;
-    }
-    public String getRecordFee1() {
-        return recordFee1;
-    }
-
-    public void setRecordFee2(String recordFee2) {
-        this.recordFee2 = recordFee2;
-    }
-    public String getRecordFee2() {
-        return recordFee2;
-    }
-
-    public void setRecordFee3(String recordFee3) {
-        this.recordFee3 = recordFee3;
-    }
-
-    public String getRecordFee3() {
-        return recordFee3;
+    public String getPhysId() {
+        return physId;
     }
 
     public void setTradeType(Integer tradeType) {
@@ -132,5 +142,20 @@ public class YlcRecord {
     }
     public Integer getTradeType() {
         return tradeType;
+    }
+
+    public void setBusinessDate(Date businessDate) {
+        this.businessDate = businessDate;
+    }
+    public Date getBusinessDate() {
+        return businessDate;
+    }
+
+    public void setOverType(Integer overType) {
+        this.overType = overType;
+    }
+
+    public Integer getOverType() {
+        return overType;
     }
 }

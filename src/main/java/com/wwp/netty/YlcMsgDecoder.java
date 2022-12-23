@@ -9,13 +9,14 @@ import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.ReplayingDecoder;
 
 
+import java.util.Base64;
 import java.util.List;
 
 
 public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState> {
 
     private YlcMsgHeader ylcMsgHeader;
-    private YlcMessage ylcMessage;
+    private YlcDevMsg ylcDevMsg;
     private int bytesRemainingInVariablePart;
     private final int maxBytesInMessage;
     private final int maxClientIdLength;
@@ -41,6 +42,9 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
     // readRetainedSlice
     //68f011220044aa
     //心跳  680d000100033201020304050601000708
+    //认证  6822000000013201020304050601020A56342E312E3530000101010101010101010101020708
+    //计费模型验证请求0x05 680D110200053201020304050613240708
+    //计费模型请求   0x09  680B02000009320102030405060708
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf buffer, List<Object> out) throws Exception {
         System.out.println("state: "+this.state());
@@ -60,7 +64,7 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
                 } catch (Exception e) {
                     this.checkpoint(YlcMsgDecoder.DecoderState.BAD_MESSAGE);
                     System.out.println(e.toString());
-                    out.add(new YlcMessage(false,null,null,e.toString()));
+                    out.add(YlcResult.error(e.toString()));
                     return;
                 }
 
@@ -70,9 +74,9 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
                         throw new DecoderException("too short "+ (this.ylcMsgHeader.getLength()-4+2));
                     }
 
-                    System.out.println("type: "+ this.ylcMsgHeader.getType()+" length: "+this.ylcMsgHeader.getLength()+" seq: "+this.ylcMsgHeader.getSeq());
-                    this.ylcMessage =decodePayload(ctx, buffer, this.ylcMsgHeader, 12, 32);
-
+                    System.out.println("type: "+ this.ylcMsgHeader.getMsgType()+" length: "+this.ylcMsgHeader.getLength()+" seq: "+this.ylcMsgHeader.getSeq());
+                    this.ylcDevMsg =decodePayload(ctx, buffer, this.ylcMsgHeader, 12, 32);
+                    this.ylcDevMsg.setHeader(this.ylcMsgHeader);
                     this.ylcMsgHeader = null;
                     this.checkpoint(DecoderState.READ_CRC);
 
@@ -81,7 +85,7 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
                     break;
                 } catch (Exception e) {
                     this.checkpoint(YlcMsgDecoder.DecoderState.BAD_MESSAGE);
-                    out.add(new YlcMessage(false,this.ylcMsgHeader,null,e.toString()));
+                    out.add(YlcResult.error(e.toString()));
                     return;
                 }
 
@@ -91,13 +95,13 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
                    if(this.actualReadableBytes()<2)
                        throw new DecoderException("no crc bytes ");
                    System.out.println("crcL: "+buffer.readUnsignedByte()+"  crcH: "+buffer.readUnsignedByte());
-                   out.add(ylcMessage);
+                   out.add(new YlcResult(ylcDevMsg));
                    this.checkpoint(DecoderState.READ_HEADER);
                    break;
                }
                 catch(Exception e){
                     this.checkpoint(YlcMsgDecoder.DecoderState.BAD_MESSAGE);
-                    out.add(new YlcMessage(false,this.ylcMsgHeader,null,e.toString()));
+                    out.add(YlcResult.error(e.toString()));
                     return;
                 }
 
@@ -126,8 +130,8 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
         if(b0 != 0x68)  throw new DecoderException("wrong header "+ b0);
 
         int length = buffer.readUnsignedByte()&0xff;
-        int seq =  buffer.readUnsignedByte()<<8;
-        seq += buffer.readUnsignedByte();
+        int seq =  buffer.readUnsignedByte();
+        seq += buffer.readUnsignedByte()<<8;
         int marker =  buffer.readUnsignedByte();
         int b5 =    buffer.readUnsignedByte();
         YlcMsgType type = YlcMsgType.valueOf(b5);
@@ -158,9 +162,9 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
  */
     }
 
-    private   YlcMessage decodePayload(ChannelHandlerContext ctx, ByteBuf buffer, YlcMsgHeader ylcMsgHeader, int bytesRemainingInVariablePart, int maxClientIdLength)throws Exception {
+    private YlcDevMsg decodePayload(ChannelHandlerContext ctx, ByteBuf buffer, YlcMsgHeader ylcMsgHeader, int bytesRemainingInVariablePart, int maxClientIdLength)throws Exception {
 
-        switch(ylcMsgHeader.getType()) {
+        switch(ylcMsgHeader.getMsgType()) {
             case AUTH:
                 return decodeAuth(ctx,buffer,ylcMsgHeader);
             case HEART:
@@ -184,19 +188,22 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
             case REMOTE_OFF_ACK:
                 return decodeRemoteOffAck(ctx,buffer,ylcMsgHeader);
 
+            case CARD_UPDATE_ACK:
+                return decodeCardUpdateAck(ctx,buffer,ylcMsgHeader);
+
             case RECORD:
                 return decodeRecord(ctx,buffer,ylcMsgHeader);
 
             default:
-                return new YlcMessage(true,ylcMsgHeader,"no decode","null");
+                return new YlcDevMsg(true,ylcMsgHeader,"no decode","null");
 
         }
     }
 
 
-    private YlcMessage decodeAuth(ChannelHandlerContext ctx, ByteBuf buffer,YlcMsgHeader ylcMsgHeader)
+    private YlcDevMsg decodeAuth(ChannelHandlerContext ctx, ByteBuf buffer, YlcMsgHeader ylcMsgHeader)
     {
-        YlcMessage msg = new YlcMessage();
+        YlcDevMsg msg = new YlcDevMsg();
         int index=8;
         short[] serialId=new short[7];
         for(index=0;index<7;index++)
@@ -213,9 +220,9 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
     }
 
 
-    private YlcMessage decodeHeart(ChannelHandlerContext ctx, ByteBuf buffer,YlcMsgHeader ylcMsgHeader)
+    private YlcDevMsg decodeHeart(ChannelHandlerContext ctx, ByteBuf buffer, YlcMsgHeader ylcMsgHeader)
     {
-        YlcMessage msg = new YlcMessage();
+        YlcDevMsg msg = new YlcDevMsg();
         int index=8;
         short[] serialId=new short[7];
         for(index=0;index<7;index++)
@@ -231,12 +238,12 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
         return msg;
     }
 
-    private YlcMessage decodeModelVerify(ChannelHandlerContext ctx, ByteBuf buffer,YlcMsgHeader ylcMsgHeader)
+    private YlcDevMsg decodeModelVerify(ChannelHandlerContext ctx, ByteBuf buffer, YlcMsgHeader ylcMsgHeader)
     {
-        YlcMessage msg = new YlcMessage();
-        FeeModel feeModel = new FeeModel();
+        YlcDevMsg msg = new YlcDevMsg();
+        //FeeModel feeModel = new FeeModel();
         int index=7;
-        short[] serialId=new short[8];
+        short[] serialId=new short[7];
         short[] model = new short[2];
         for(index=0;index<7;index++)
             serialId[index] =  buffer.readUnsignedByte();
@@ -245,8 +252,7 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
         model[0] = buffer.readUnsignedByte();
         model[1] = buffer.readUnsignedByte();
 
-        feeModel.setModelCode(YlcStringUtils.bcd2string(model));
-        msg.setFeeModel(feeModel);
+        msg.setModelCode(YlcStringUtils.bcd2string(model));
 
         msg.setSuccess(true);
 
@@ -255,25 +261,24 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
 
 
 
-    private YlcMessage decodeGetModel(ChannelHandlerContext ctx, ByteBuf buffer,YlcMsgHeader ylcMsgHeader)
+    private YlcDevMsg decodeGetModel(ChannelHandlerContext ctx, ByteBuf buffer, YlcMsgHeader ylcMsgHeader)
     {
-        YlcMessage msg = new YlcMessage();
+        YlcDevMsg msg = new YlcDevMsg();
         int index=8;
-        short[] serialId=new short[8];
-        for(index=0;index<8;index++)
+        short[] serialId=new short[7];
+        for(index=0;index<7;index++)
             serialId[index] =  buffer.readUnsignedByte();
         msg.setSerialId(YlcStringUtils.bcd2string(serialId));
 
-        buffer.skipBytes(this.actualReadableBytes());
 
         msg.setSuccess(true);
 
         return msg;
     }
 
-    private YlcMessage decodeUpRtStatus(ChannelHandlerContext ctx, ByteBuf buffer,YlcMsgHeader ylcMsgHeader)
+    private YlcDevMsg decodeUpRtStatus(ChannelHandlerContext ctx, ByteBuf buffer, YlcMsgHeader ylcMsgHeader)
     {
-        YlcMessage msg = new YlcMessage();
+        YlcDevMsg msg = new YlcDevMsg();
         int index=8;
         short[] serialId = new short[8];
         short[] businessId = new short[16];
@@ -331,9 +336,9 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
         return msg;
     }
 
-    private YlcMessage decodeUpChargeEnd(ChannelHandlerContext ctx, ByteBuf buffer,YlcMsgHeader ylcMsgHeader)
+    private YlcDevMsg decodeUpChargeEnd(ChannelHandlerContext ctx, ByteBuf buffer, YlcMsgHeader ylcMsgHeader)
     {
-        YlcMessage msg = new YlcMessage();
+        YlcDevMsg msg = new YlcDevMsg();
         int index=8;
         short[] serialId = new short[8];
         short[] businessId = new short[16];
@@ -357,9 +362,9 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
 
     }
 
-    private YlcMessage decodeUpChargeReq(ChannelHandlerContext ctx, ByteBuf buffer,YlcMsgHeader ylcMsgHeader)
+    private YlcDevMsg decodeUpChargeReq(ChannelHandlerContext ctx, ByteBuf buffer, YlcMsgHeader ylcMsgHeader)
     {
-        YlcMessage msg = new YlcMessage();
+        YlcDevMsg msg = new YlcDevMsg();
         int index=8;
         short[] serialId = new short[8];
         short[] cardId = new short[8];
@@ -381,58 +386,60 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
         return msg;
     }
 
-    private YlcMessage decodeRemoteOnAck(ChannelHandlerContext ctx, ByteBuf buffer,YlcMsgHeader ylcMsgHeader)
+    private YlcDevMsg decodeRemoteOnAck(ChannelHandlerContext ctx, ByteBuf buffer, YlcMsgHeader ylcMsgHeader)
     {
-        YlcMessage msg = new YlcMessage();
+        YlcDevMsg msg = new YlcDevMsg();
         int index=8;
-        short[] serialId = new short[8];
+        short[] serialId = new short[7];
         short[] businessId = new short[16];
 
         for(index=0;index<16;index++)
             businessId[index] =  buffer.readUnsignedByte();
         msg.setBusinessId(YlcStringUtils.bcd2string(businessId));
 
-        for(index=0;index<8;index++)
+        for(index=0;index<7;index++)
             serialId[index] =  buffer.readUnsignedByte();
+        msg.setSerialId(YlcStringUtils.bcd2string(serialId));
 
         msg.setPlugNo((int)buffer.readUnsignedByte()); //枪号
         msg.setStartOk((int)buffer.readUnsignedByte());
-
-
+        msg.setCtrlError((int)buffer.readUnsignedByte());
+        msg.setSuccess(true);
         return msg;
     }
 
-    private YlcMessage decodeRemoteOffAck(ChannelHandlerContext ctx, ByteBuf buffer,YlcMsgHeader ylcMsgHeader)
+    private YlcDevMsg decodeRemoteOffAck(ChannelHandlerContext ctx, ByteBuf buffer, YlcMsgHeader ylcMsgHeader)
     {
-        YlcMessage msg = new YlcMessage();
+        YlcDevMsg msg = new YlcDevMsg();
         int index=8;
-        short[] serialId = new short[8];
+        short[] serialId = new short[7];
 
-        for(index=0;index<8;index++)
+        for(index=0;index<7;index++)
             serialId[index] =  buffer.readUnsignedByte();
+        msg.setSerialId(YlcStringUtils.bcd2string(serialId));
 
         msg.setPlugNo((int)buffer.readUnsignedByte()); //枪号
         msg.setStopOk((int)buffer.readUnsignedByte());
 
-
+        msg.setSuccess(true);
         return msg;
     }
 
-    private YlcMessage decodeRecord(ChannelHandlerContext ctx, ByteBuf buffer,YlcMsgHeader ylcMsgHeader) throws Exception
+    private YlcDevMsg decodeRecord(ChannelHandlerContext ctx, ByteBuf buffer, YlcMsgHeader ylcMsgHeader) throws Exception
     {
-        YlcMessage msg = new YlcMessage();
+        YlcDevMsg msg = new YlcDevMsg();
 
         int index=8;
-        short[] serialId = new short[8];
+        short[] serialId = new short[7];
         short[] businessId = new short[16];
         short[] cp56Time = new short[7];
-        short[] fee = new short[16];
+        byte[] fee = new byte[16];
 
         for(index=0;index<16;index++)
             businessId[index] =  buffer.readUnsignedByte();
         msg.setBusinessId(YlcStringUtils.bcd2string(businessId));
 
-        for(index=0;index<8;index++)
+        for(index=0;index<7;index++)
             serialId[index] =  buffer.readUnsignedByte();
         msg.setSerialId(YlcStringUtils.bcd2string(serialId));
 
@@ -443,61 +450,87 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
 
         for(index=0;index<7;index++)
             cp56Time[index] =  buffer.readUnsignedByte();
-        record.setStartTime(YlcStringUtils.CP56Time2Data(cp56Time));
+        record.setStartTime(YlcStringUtils.cp56Time2Date(cp56Time));
 
         for(index=0;index<7;index++)
             cp56Time[index] =  buffer.readUnsignedByte();
-        record.setEndTime(YlcStringUtils.CP56Time2Data(cp56Time));
+        record.setEndTime(YlcStringUtils.cp56Time2Date(cp56Time));
 
         for(index=0;index<16;index++)//尖
-            fee[index] =  buffer.readUnsignedByte();
-        record.setRecordFee0(YlcStringUtils.bcd2string(fee));
+            fee[index] =  buffer.readByte();
+        record.setFee0All(Base64.getEncoder().encodeToString(fee));
 
         for(index=0;index<16;index++)//峰
-            fee[index] =  buffer.readUnsignedByte();
-        record.setRecordFee1(YlcStringUtils.bcd2string(fee));
+            fee[index] =  buffer.readByte();
+        record.setFee1All(Base64.getEncoder().encodeToString(fee));
 
         for(index=0;index<16;index++)//平
-            fee[index] =  buffer.readUnsignedByte();
-        record.setRecordFee2(YlcStringUtils.bcd2string(fee));
+            fee[index] =  buffer.readByte();
+        record.setFee2All(Base64.getEncoder().encodeToString(fee));
 
         for(index=0;index<16;index++)//谷
-            fee[index] =  buffer.readUnsignedByte();
-        record.setRecordFee3(YlcStringUtils.bcd2string(fee));
+            fee[index] =  buffer.readByte();
+        record.setFee3All(Base64.getEncoder().encodeToString(fee));
 
-        long recordStartKwh;
-        long recordEndKwh;
-        long recordTotalKwh;
-        long lossTotalKwh;
-        long totalCost;//所有花费
+        byte[] recordStartKwh = new byte[5];
+        byte[] recordEndKwh =new byte[5];
+        byte[] recordTotalKwh= new byte[4];
+        byte[] lossTotalKwh= new byte[4];
+        byte[] totalCost= new byte[4];//所有花费
 
-        recordStartKwh =buffer.readUnsignedByte()| (buffer.readUnsignedByte()<<8) |
-                (buffer.readUnsignedByte()<<16) |(buffer.readUnsignedByte()<<24) |(buffer.readUnsignedByte()<<32);
-        recordEndKwh = buffer.readUnsignedByte()| (buffer.readUnsignedByte()<<8) |
-                (buffer.readUnsignedByte()<<16) |(buffer.readUnsignedByte()<<24) |(buffer.readUnsignedByte()<<32);
+        for(index=0;index<5;index++)
+            recordStartKwh[index] =  buffer.readByte();
+        record.setRecordStartKwh(Base64.getEncoder().encodeToString(recordStartKwh));
 
-        recordTotalKwh = buffer.readUnsignedByte()| (buffer.readUnsignedByte()<<8) |
-                (buffer.readUnsignedByte()<<16) |(buffer.readUnsignedByte()<<24);
+        for(index=0;index<5;index++)
+            recordEndKwh[index] =  buffer.readByte();
+        record.setRecordEndKwh(Base64.getEncoder().encodeToString(recordEndKwh));
 
-        lossTotalKwh = buffer.readUnsignedByte()| (buffer.readUnsignedByte()<<8) |
-                (buffer.readUnsignedByte()<<16) |(buffer.readUnsignedByte()<<24);
+        for(index=0;index<4;index++)
+            recordTotalKwh[index] =  buffer.readByte();
+        record.setRecordTotalKwh(Base64.getEncoder().encodeToString(recordTotalKwh));
 
-        totalCost= buffer.readUnsignedByte()| (buffer.readUnsignedByte()<<8) |
-                (buffer.readUnsignedByte()<<16) |(buffer.readUnsignedByte()<<24);
+        for(index=0;index<4;index++)
+            lossTotalKwh[index] =  buffer.readByte();
+        record.setLossTotalKwh(Base64.getEncoder().encodeToString(lossTotalKwh));
 
-        record.setRecordStartKwh(recordStartKwh);
-        record.setRecordEndKwh(recordEndKwh);
-        record.setRecordTotalKwh(recordTotalKwh);
-        record.setLossTotalKwh(lossTotalKwh);
-        record.setTotalCost(totalCost);
+        for(index=0;index<4;index++)
+            totalCost[index] =  buffer.readByte();
+        record.setTotalCost(Base64.getEncoder().encodeToString(totalCost));
 
         buffer.skipBytes(17);//电动汽车唯一标识
 
         record.setTradeType(buffer.readUnsignedByte()&0xff);
 
-        buffer.skipBytes(this.actualReadableBytes());
-        msg.setYlcRecord(record);
+        for(index=0;index<7;index++)
+            cp56Time[index] =  buffer.readUnsignedByte();
+        record.setBusinessDate(YlcStringUtils.cp56Time2Date(cp56Time));
 
+        record.setOverType((int)buffer.readUnsignedByte());
+
+        byte[] physId = new byte[8];
+        for(index=0;index<8;index++)
+            physId[index] =  buffer.readByte();
+        record.setPhysId(Base64.getEncoder().encodeToString(physId));
+
+        msg.setYlcRecord(record);
+        msg.setSuccess(true);
+
+        return msg;
+    }
+
+
+    private YlcDevMsg decodeCardUpdateAck(ChannelHandlerContext ctx, ByteBuf buffer, YlcMsgHeader ylcMsgHeader)
+    {
+        YlcDevMsg msg = new YlcDevMsg();
+        int index=8;
+        short[] serialId = new short[7];
+
+        for(index=0;index<7;index++)
+            serialId[index] =  buffer.readUnsignedByte();
+        msg.setSerialId(YlcStringUtils.bcd2string(serialId));
+        msg.setSuccess( buffer.readUnsignedByte()==0x01);
+        msg.setError(String.format("%d",buffer.readUnsignedByte()));//失败原因
 
         return msg;
     }

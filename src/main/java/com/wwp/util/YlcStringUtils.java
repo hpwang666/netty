@@ -1,10 +1,16 @@
 package com.wwp.util;
 
+import java.io.ByteArrayOutputStream;
+import java.nio.ByteBuffer;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Base64;
 import java.util.Date;
+import java.util.stream.IntStream;
 
 public class YlcStringUtils {
+    static short seq=0;
+
 
     public static String bcd2string(short[] src)
     {
@@ -33,7 +39,40 @@ public class YlcStringUtils {
         return sb.toString();
     }
 
-    public static Date CP56Time2Data (short[] cp56Time)throws ParseException
+    public static byte[] string2bcd(String s)
+    {
+
+        if(s.length () % 2 != 0)
+        {
+            s = "0" + s;
+        }
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        char [] cs = s.toCharArray ();
+        for (int i = 0;i < cs.length;i += 2)
+        {
+            int high = cs [i] - 48;
+            int low = cs [i + 1] - 48;
+            baos.write (high << 4 | low);
+        }
+        return baos.toByteArray ();
+    }
+
+
+
+
+//    public static String IntsEncodeB64(int[] src,int length)
+//    {
+//        ByteBuffer buf = ByteBuffer.allocate(length);
+//        IntStream.of(src).forEach(i -> buf.put((byte)i));
+//        return Base64.getEncoder().encodeToString(buf.array());
+//    }
+//
+//    public static byte[] decodeBytes(String b64)
+//    {
+//        return Base64.getDecoder().decode(b64);
+//    }
+
+    public static Date cp56Time2Date(short[] cp56Time)throws ParseException
     {
         if(cp56Time.length <7) throw new ParseException("too short ",0);
         String year = "20"+(cp56Time[6]&0x7f);
@@ -63,14 +102,14 @@ public class YlcStringUtils {
 
    // CRC 由两字节组成，生成函数如下：
 
-    public static int crc(short[]  pData)
+    public static int crc(byte[]  pData,int length)
     {
         int byCRCHi = 0xff;
         int byCRCLo = 0xff;
         int byIdx;
         int crc;
 
-        for (int i = 0;i < pData.length;i++ ) {
+        for (int i = 0;i < length;i++ ) {
             byIdx = (byCRCHi ^ pData[i])&0xff;
             byCRCHi = (byCRCLo ^ gabyCRCHi[byIdx])&0xff;
             byCRCLo = gabyCRCLo[byIdx]&0xff;
@@ -140,4 +179,24 @@ public class YlcStringUtils {
                     0x44,0x84,0x85,0x45,0x87,0x47,0x46,0x86,0x82,0x42,
                     0x43,0x83,0x41,0x81,0x80,0x40
             };
+
+    static public String genBusinessId(String serialId,Integer plugNo)
+    {
+        StringBuffer sb = new StringBuffer ();
+        sb.append(serialId);
+        sb.append(String.format("%02d", plugNo));
+
+        Date date = new Date();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmm");
+        String str = sdf.format(date);
+
+        sb.append(str);
+        seq++;
+        if(seq==9999) seq =0;
+        sb.append(String.format("%04d", seq));
+        return sb.toString();
+    }
 }
+
+
+

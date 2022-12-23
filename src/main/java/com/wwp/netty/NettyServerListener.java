@@ -10,6 +10,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.timeout.IdleStateHandler;
+import io.netty.util.ResourceLeakDetector;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import org.springframework.stereotype.Component;
 
@@ -17,11 +18,7 @@ import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import java.lang.reflect.Field;
 
-/**
- * 服务启动监听器
- *
- * @author 叶云轩
- */
+
 @Component
 public class NettyServerListener {
 
@@ -80,6 +77,7 @@ public class NettyServerListener {
      */
     public void start() {
         // 从配置文件中(application.yml)获取服务端监听端口号
+        //ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.PARANOID);//ADVANCED
         int port = nettyConfig.getPort();
 
 
@@ -99,7 +97,8 @@ public class NettyServerListener {
 
                     pipeline.addLast(new IdleStateHandler(100, 0, 0));
                     pipeline.addLast("decoder",new YlcMsgDecoder());
-                    pipeline.addLast("encoder",new YlcMsgEncoder());
+                    pipeline.addLast("encoderAck",new YlcMsgEncoder());
+                    pipeline.addLast("encoderCtrl",new YlcCtrlEncoder(businessGroup));
                     pipeline.addLast(new ServerChannelHandlerAdapter());
                     pipeline.addLast(businessGroup,new BusinessHandler(businessGroup));//在Netty业务线程池里执行耗时业务
                     //pipeline.addLast(new BusinessHandler());//在Io线程池里面执行耗时业务
@@ -112,9 +111,7 @@ public class NettyServerListener {
 
             System.out.println("netty服务器在[{}]端口启动监听"+ port);
             ChannelFuture channelFuture  = serverBootstrap.bind(port).sync();
-            channelFuture.channel().closeFuture().sync();
-
-
+            //channelFuture.channel().closeFuture().sync();
 
         } catch (InterruptedException e ) {
             System.out.println("[出现异常] 释放资源");

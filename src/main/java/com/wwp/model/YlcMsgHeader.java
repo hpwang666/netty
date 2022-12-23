@@ -4,14 +4,14 @@ public class YlcMsgHeader {
     private int length;
     private  int seq;
     private int marker;
-    private YlcMsgType type;
+    private YlcMsgType msgType;
 
     public YlcMsgHeader(int length,int seq,int marker,YlcMsgType type)
     {
         this.length = length;
         this.seq = seq;
         this.marker = marker;
-        this.type = type;
+        this.msgType = type;
     }
 
 
@@ -28,7 +28,11 @@ public class YlcMsgHeader {
         return this.marker;
     }
 
-    public YlcMsgType getType() {
-        return this.type;
+    public YlcMsgType getMsgType() {
+        return this.msgType;
+    }
+
+    public void setMsgType(YlcMsgType msgType) {
+        this.msgType = msgType;
     }
 }

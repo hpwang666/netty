@@ -1,13 +1,8 @@
 package com.wwp.entity;
 
 import com.wwp.common.annotation.Id;
-import com.wwp.model.ChargerStatus;
-import com.wwp.model.FeeModel;
-import com.wwp.model.YlcMsgHeader;
-import com.wwp.model.YlcRecord;
 
 import java.io.Serializable;
-import java.text.DateFormat;
 import java.util.Date;
 
 public class DevCharger implements Serializable {
@@ -28,7 +23,7 @@ public class DevCharger implements Serializable {
     //充电枪数量
     private Integer plugs;
 
-    //计费模型编码
+    //计费模型B64编码
     private String modelCode;
 
     //0x00：离线   0x01：故障  0x02：空闲  0x03：充电

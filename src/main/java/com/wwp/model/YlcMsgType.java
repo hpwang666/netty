@@ -2,12 +2,13 @@ package com.wwp.model;
 
 
 public enum YlcMsgType {
+    DO_NOTHING(0X00),
     AUTH(0X01),
     AUTH_ACK(0X02),
     HEART(0x03),
     HEART_ACK(0x04),
     MODEL_VERIFY(0x05),
-    MODEL_AUTH_ACK(0x06),
+    MODEL_VERIFY_ACK(0x06),
     GET_MODEL(0X09),
     GET_MODEL_ACK(0X0A),
     RT_STATUS(0X12),

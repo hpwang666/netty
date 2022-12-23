@@ -2,11 +2,7 @@ package com.wwp.netty;
 
 import org.springframework.stereotype.Component;
 
-/**
- * Netty服务器常量
- * Created by 叶云轩 on 2017/10/31 - 17:47
- * Concat tdg_yyx@foxmail.com
- */
+
 @Component
 public class NettyConstant {
 

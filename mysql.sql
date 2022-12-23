@@ -20,5 +20,18 @@ CREATE TABLE `dev_charger` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 
 
+CREATE TABLE `fee_model` (
+  `id` varchar(32) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+  `model_code` varchar(32) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '模型编码',
+  `fee0` varchar(32) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '尖费率',
+  `fee1` varchar(32) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '峰费率',
+  `fee2` varchar(32) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '平费率',
+  `fee3` varchar(32) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '谷费率',
+  `loss_rate` tinyint(1)  NOT NULL COMMENT '计损比率 ',
+  `fees_by_model` varchar(128) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '48段费率表',
+   PRIMARY KEY (`id`) USING BTREE,
+  KEY `index_id` (`id`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+
 
 

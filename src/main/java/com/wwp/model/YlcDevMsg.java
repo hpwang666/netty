@@ -1,20 +1,22 @@
 package com.wwp.model;
 
 import com.wwp.common.annotation.Id;
+import com.wwp.entity.FeeModel;
 
-public class YlcMessage {
+public class YlcDevMsg {
 
     @Id
     private String id;
 
     private YlcMsgHeader header;
     private YlcRecord ylcRecord;
-    private FeeModel feeModel;
-
 
     private Object payload;
     private String error;
     private boolean success;
+
+    //计费模型base64编码
+    private String modelCode;
 
     //交易流水号
     private String businessId;
@@ -46,6 +48,9 @@ public class YlcMessage {
     //充电桩是否停止成功
     private Integer stopOk;
 
+    //远程启停机错误码
+    private Integer ctrlError;
+
     //卡号
     private String cardId;
 
@@ -72,7 +77,7 @@ public class YlcMessage {
     private byte crcL;
     private byte crcH;
 
-    public YlcMessage(boolean success,YlcMsgHeader header,Object payload,String error)
+    public YlcDevMsg(boolean success, YlcMsgHeader header, Object payload, String error)
     {
         this.success = success;
         this.header = header;
@@ -80,7 +85,7 @@ public class YlcMessage {
         this.error = error;
     }
 
-    public YlcMessage() {
+    public YlcDevMsg() {
 
     }
 
@@ -91,12 +96,12 @@ public class YlcMessage {
         return ylcRecord;
     }
 
-    public void setFeeModel(FeeModel feeModel) {
-        this.feeModel = feeModel;
+    public void setModelCode(String modelCode) {
+        this.modelCode = modelCode;
     }
 
-    public FeeModel getFeeModel() {
-        return feeModel;
+    public String getModelCode() {
+        return modelCode;
     }
 
     public void setSuccess(boolean success) {
@@ -200,6 +205,13 @@ public class YlcMessage {
         return stopOk;
     }
 
+    public void setCtrlError(Integer ctrlError) {
+        this.ctrlError = ctrlError;
+    }
+    public Integer getCtrlError() {
+        return ctrlError;
+    }
+
     public void setCardId(String cardId) {
         this.cardId = cardId;
     }
@@ -244,4 +256,6 @@ public class YlcMessage {
     public Integer getService() {
         return service;
     }
+
+
 }

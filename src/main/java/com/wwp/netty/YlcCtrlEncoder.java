@@ -39,6 +39,7 @@ public class YlcCtrlEncoder extends MessageToByteEncoder<YlcCtrlMsg> {  //1
         catch(Exception e)
         {
             e.printStackTrace();
+            System.out.println("没发送成功");
         }
 
     }
@@ -47,6 +48,8 @@ public class YlcCtrlEncoder extends MessageToByteEncoder<YlcCtrlMsg> {  //1
         switch(ctrl.getMsgType()) {
             case REMOTE_ON:
                 return encodeRemoteOn(ctx, ctrl);
+            case REMOTE_OFF:
+                return encodeRemoteOff(ctx, ctrl);
             case CARD_UPDATE:
                 return encodeRemoteAddPhys(ctx, ctrl);
             default:
@@ -78,8 +81,41 @@ public class YlcCtrlEncoder extends MessageToByteEncoder<YlcCtrlMsg> {  //1
 
         byte[] forCRC =  Arrays.copyOfRange(propertiesBuf.array(),2,baseLen+2);//15角标是不包含的
         int crc = YlcStringUtils.crc(forCRC,baseLen);
-        propertiesBuf.put((byte)(crc&0xff));
         propertiesBuf.put((byte)((crc>>8)&0xff));
+        propertiesBuf.put((byte)(crc&0xff));
+
+
+        ByteBuf var14;
+        ByteBuf buf = ctx.alloc().buffer(baseLen+4);
+        buf.writeBytes(propertiesBuf.array());
+        var14 = buf;
+        return var14;
+    }
+
+    static ByteBuf encodeRemoteOff(ChannelHandlerContext ctx, YlcCtrlMsg ctrl) {
+        int baseLen=16-4;//总长度-4
+        ByteBuffer propertiesBuf = ByteBuffer.allocate(baseLen+4);
+        propertiesBuf.put((byte)0x68);
+        propertiesBuf.put((byte)0x0c);
+
+        //序列号 域
+        propertiesBuf.put((byte)0x22);
+        propertiesBuf.put((byte)0x33);
+
+
+        propertiesBuf.put((byte)0x00);
+        propertiesBuf.put((byte)0x36);
+
+
+        propertiesBuf.put(YlcStringUtils.string2bcd(ctrl.getSerialId()));
+        propertiesBuf.put((byte)(ctrl.getPlugNo()&0xff));
+
+
+        byte[] forCRC =  Arrays.copyOfRange(propertiesBuf.array(),2,baseLen+2);//15角标是不包含的
+        int crc = YlcStringUtils.crc(forCRC,baseLen);
+        propertiesBuf.put((byte)((crc>>8)&0xff));
+        propertiesBuf.put((byte)(crc&0xff));
+
 
         ByteBuf var14;
         ByteBuf buf = ctx.alloc().buffer(baseLen+4);
@@ -110,8 +146,9 @@ public class YlcCtrlEncoder extends MessageToByteEncoder<YlcCtrlMsg> {  //1
 
         byte[] forCRC =  Arrays.copyOfRange(propertiesBuf.array(),2,baseLen+2);//15角标是不包含的
         int crc = YlcStringUtils.crc(forCRC,baseLen);
-        propertiesBuf.put((byte)(crc&0xff));
         propertiesBuf.put((byte)((crc>>8)&0xff));
+        propertiesBuf.put((byte)(crc&0xff));
+
 
         ByteBuf var14;
         ByteBuf buf = ctx.alloc().buffer(baseLen+4);

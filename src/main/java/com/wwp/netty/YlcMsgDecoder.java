@@ -1,5 +1,6 @@
 package com.wwp.netty;
 
+import com.wwp.devices.YlcDeviceMap;
 import com.wwp.model.YlcMsgType;
 import com.wwp.model.*;
 import com.wwp.util.YlcStringUtils;
@@ -41,16 +42,18 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
     // skipBytes
     // readRetainedSlice
     //68f011220044aa
-    //心跳  680d000100033201020304050601000708
-    //认证  6822000000013201020304050601020A56342E312E3530000101010101010101010101020708
-    //计费模型验证请求0x05 680D110200053201020304050613240708
-    //计费模型请求   0x09  680B02000009320102030405060708
+    //心跳  680d000100033201060021353301000708
+    //认证  6822000000013201060021353301020A56342E312E3530000101010101010101010101020708
+    //计费模型验证请求0x05 680D110200053201060021353313240708
+    //计费模型请求   0x09  680B02000009320106002135330708
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf buffer, List<Object> out) throws Exception {
-        System.out.println("state: "+this.state());
+        //System.out.println("state: "+this.state());
+        short crcH=0;
+        short crcL=0;
         if (this.actualReadableBytes() ==0) {
             //ctx.close();
-            System.out.println("closed? ");
+            System.out.println("客户端要关闭？ ");
             return;
         }
 
@@ -94,7 +97,9 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
                try{
                    if(this.actualReadableBytes()<2)
                        throw new DecoderException("no crc bytes ");
-                   System.out.println("crcL: "+buffer.readUnsignedByte()+"  crcH: "+buffer.readUnsignedByte());
+                   crcL = buffer.readUnsignedByte();
+                   crcH= buffer.readUnsignedByte();
+                  // System.out.println("crcL: "+crcL+"  crcH: "+crcH);
                    out.add(new YlcResult(ylcDevMsg));
                    this.checkpoint(DecoderState.READ_HEADER);
                    break;
@@ -118,12 +123,14 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         System.out.println("decoder  channelInactive");
+        YlcDeviceMap.remove(ctx.channel());
         super.channelInactive(ctx);
     }
 
     private  YlcMsgHeader decodeHeader(ChannelHandlerContext ctx, ByteBuf buffer) {
         if (this.actualReadableBytes() < 6) {
-            throw new DecoderException("too short no header");
+
+            throw new DecoderException("too short no header："+this.actualReadableBytes());
         }
         
         short b0 = buffer.readUnsignedByte();
@@ -280,7 +287,7 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
     {
         YlcDevMsg msg = new YlcDevMsg();
         int index=8;
-        short[] serialId = new short[8];
+        short[] serialId = new short[7];
         short[] businessId = new short[16];
         short[] wireId = new short[8];
 
@@ -292,19 +299,23 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
             businessId[index] =  buffer.readUnsignedByte();
         msg.setBusinessId(YlcStringUtils.bcd2string(businessId));
 
-        for(index=0;index<8;index++)
+        for(index=0;index<7;index++)
             serialId[index] =  buffer.readUnsignedByte();
         msg.setSerialId(YlcStringUtils.bcd2string(serialId));
 
 
         msg.setPlugNo((int)buffer.readUnsignedByte()); //枪号
         msg.setPlugStatus((int)buffer.readUnsignedByte());//枪状态
-
         chargerStatus.setPlugHoming((int)buffer.readUnsignedByte());//是否归位
         chargerStatus.setSlotIn((int)buffer.readUnsignedByte()); //是否插枪
+
+
         chargerStatus.setVoltage((int)buffer.readUnsignedByte()+( (int)buffer.readUnsignedByte()<<8&0xff00));//
         chargerStatus.setCurrent((int)buffer.readUnsignedByte()+( (int)buffer.readUnsignedByte()<<8&0xff00));;
         chargerStatus.setWireTmp((int)buffer.readUnsignedByte());
+
+        System.out.println("枪状态 "+msg.getPlugStatus()+"  归位: "+chargerStatus.getPlugHoming()+"  插枪："+chargerStatus.getSlotIn());
+        System.out.println("电压： "+chargerStatus.getVoltage());
 
         for(index=0;index<8;index++)
             wireId[index] =  buffer.readUnsignedByte();
@@ -329,7 +340,8 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
             usedMoney |=  buffer.readUnsignedByte()<<(index*8);
         chargerStatus.setUsedMoney(usedMoney);
 
-        buffer.skipBytes(this.actualReadableBytes());
+        System.out.println("充电度数： "+chargerStatus.getUsedKwh()+" 已充金额："+chargerStatus.getUsedMoney());
+        buffer.skipBytes(2);
 
         msg.setSuccess(true);
         msg.setChargerStatus(chargerStatus);

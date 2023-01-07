@@ -14,7 +14,14 @@ import java.nio.channels.SeekableByteChannel;
 
 
 /**
- * 多线程共享
+ * 清除session
+ *               ctx.channel().close(); // 手动断开连接
+ *               YlcDeviceMap.remove(ctx.channel());
+ * 保证session有效地方法有以下，因为客户端可能不close地情况下直接断开session，那么就需要实时判断更新session
+ * 1. 当读到 channelInactive 清除session
+ * 2. exceptionCaught  在写一个无效的socket 会触发 ，这时候也需要清理
+ * 3. 每次来了新包都判断下 remoteAddress port  是否变化 变了就更新
+ * 4. 通过 读超时  最后把关  清除session
  */
 
 
@@ -29,6 +36,8 @@ public class ServerChannelHandlerAdapter extends ChannelInboundHandlerAdapter {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         cause.printStackTrace();
+        System.out.println(ctx.channel().remoteAddress() + "远程强制关闭：");
+        YlcDeviceMap.remove(ctx.channel());
         ctx.close();
     }
 
@@ -45,20 +54,27 @@ public class ServerChannelHandlerAdapter extends ChannelInboundHandlerAdapter {
        // ByteBuf byteBuf = (ByteBuf) msg;
         //System.out.println("收到客户端" + ctx.channel().remoteAddress() + "发送的消息：" + byteBuf.toString(CharsetUtil.UTF_8));
      //   System.out.println("len: "+byteBuf.readableBytes());
+        System.out.println("in" + ctx.channel().remoteAddress()+" "+Thread.currentThread());
 
-        System.out.println("收到客户端" + ctx.channel().remoteAddress()+" "+Thread.currentThread());
         if(msg instanceof YlcResult){
             YlcResult result = (YlcResult) msg;
             YlcDevMsg ylcDevMsg = result.getYlcDevMsg();
 
             if(result.getSuccess()){
-                System.out.println(" id: " + ylcDevMsg.getSerialId());
+                //System.out.println(" id: " + ylcDevMsg.getSerialId());
 
                 if(!YlcDeviceMap.exist(ylcDevMsg.getSerialId())){
+                    System.out.println("添加session" + ctx.channel().remoteAddress()+" "+Thread.currentThread());
                     YlcDeviceMap.put(ylcDevMsg.getSerialId(),new Session(ctx.channel()));
-
                     //AttributeKey<Session> sessionIdKey = AttributeKey.valueOf(ylcDevMsg.getSerialId());
                     //ctx.channel().attr(sessionIdKey).set(new Session(ctx.channel()));
+                }
+                else{
+                    if (!YlcDeviceMap.get(ylcDevMsg.getSerialId()).getChannel().remoteAddress().equals(ctx.channel().remoteAddress())){
+                        System.out.println("更新session" + ctx.channel().remoteAddress()+" "+Thread.currentThread());
+                        YlcDeviceMap.put(ylcDevMsg.getSerialId()+"_",YlcDeviceMap.get(ylcDevMsg.getSerialId()));
+                        YlcDeviceMap.put(ylcDevMsg.getSerialId(),new Session(ctx.channel()));
+                    }
                 }
                 ctx.fireChannelRead(msg);
                // ctx.pipeline(). businessGroup.
@@ -94,5 +110,7 @@ public class ServerChannelHandlerAdapter extends ChannelInboundHandlerAdapter {
        System.out.println(ctx.channel().remoteAddress() + "超时事件：" + eventType);
 
    }
+
+
 
 }

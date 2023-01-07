@@ -15,7 +15,6 @@ public class YlcMsgEncoder extends MessageToByteEncoder<YlcResult> {  //1
     @Override
     public void encode(ChannelHandlerContext ctx, YlcResult result, ByteBuf out)
             throws IllegalArgumentException {
-        System.out.println("encoder");
         try{
             ctx.channel().write(doEncode(ctx, result));//交给write的buf会被release
         }
@@ -61,8 +60,10 @@ public class YlcMsgEncoder extends MessageToByteEncoder<YlcResult> {  //1
         byte[] forCRC =  Arrays.copyOfRange(propertiesBuf.array(),2,15);//15角标是不包含的
 
         int crc = YlcStringUtils.crc(forCRC,13);
-        propertiesBuf.put((byte)(crc&0xff));
+
         propertiesBuf.put((byte)((crc>>8)&0xff));
+        propertiesBuf.put((byte)(crc&0xff));
+
 
         ByteBuf var14;
         ByteBuf buf = ctx.alloc().buffer(17);
@@ -90,13 +91,18 @@ public class YlcMsgEncoder extends MessageToByteEncoder<YlcResult> {  //1
         byte[] forCRC =  Arrays.copyOfRange(propertiesBuf.array(),2,14);//15角标是不包含的
 
         int crc = YlcStringUtils.crc(forCRC,12);
-        propertiesBuf.put((byte)(crc&0xff));
         propertiesBuf.put((byte)((crc>>8)&0xff));
+        propertiesBuf.put((byte)(crc&0xff));
+
 
         ByteBuf var14;
         ByteBuf buf = ctx.alloc().buffer(16);
         buf.writeBytes(propertiesBuf.array());
         var14 = buf;
+        for (int i=0;i<16;i++
+             ) {
+           System.out.print(" "+Integer.toHexString(buf.getByte(i)) );
+        }
 
         return var14;
     }
@@ -119,13 +125,14 @@ public class YlcMsgEncoder extends MessageToByteEncoder<YlcResult> {  //1
         propertiesBuf.put(YlcStringUtils.string2bcd(result.getYlcDevMsg().getSerialId()));
         propertiesBuf.put(YlcStringUtils.string2bcd(result.getYlcDevMsg().getModelCode()));
 
-        propertiesBuf.put((byte)0x01);//验证总是不一致
+        propertiesBuf.put((byte)0x01);//0x01验证总是不一致
 
         byte[] forCRC =  Arrays.copyOfRange(propertiesBuf.array(),2,16);//15角标是不包含的
 
         int crc = YlcStringUtils.crc(forCRC,14);
-        propertiesBuf.put((byte)(crc&0xff));
         propertiesBuf.put((byte)((crc>>8)&0xff));
+        propertiesBuf.put((byte)(crc&0xff));
+
 
         ByteBuf var14;
         ByteBuf buf = ctx.alloc().buffer(18);
@@ -167,8 +174,9 @@ public class YlcMsgEncoder extends MessageToByteEncoder<YlcResult> {  //1
 
         byte[] forCRC =  Arrays.copyOfRange(propertiesBuf.array(),2,baseLen+2);//15角标是不包含的
         int crc = YlcStringUtils.crc(forCRC,baseLen);
-        propertiesBuf.put((byte)(crc&0xff));
         propertiesBuf.put((byte)((crc>>8)&0xff));
+        propertiesBuf.put((byte)(crc&0xff));
+
 
         ByteBuf var14;
         ByteBuf buf = ctx.alloc().buffer(baseLen+4);

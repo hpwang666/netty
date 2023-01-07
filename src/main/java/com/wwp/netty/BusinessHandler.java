@@ -106,7 +106,7 @@ public class BusinessHandler extends ChannelInboundHandlerAdapter {
                 DevCharger devCharger =  devChargerService.getDevChargerBySerialNum(inMsg.getSerialId());
 
                 if(devCharger !=null){
-                    System.out.println("charger: " + devCharger.getDepartId());
+                    //System.out.println("charger: " + devCharger.getDepartId());
                     devChargerService.updateTime(devCharger.getSerialNum(),new Date());
 
                     if(inMsg.getHeader().getMsgType() == GET_MODEL){

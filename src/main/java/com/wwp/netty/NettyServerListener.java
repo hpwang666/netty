@@ -1,6 +1,8 @@
 package com.wwp.netty;
 
 //
+import com.wwp.devices.YlcDeviceMap;
+import com.wwp.model.Session;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -17,6 +19,8 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import java.lang.reflect.Field;
+import java.util.Map;
+import java.util.Set;
 
 
 @Component
@@ -51,6 +55,18 @@ public class NettyServerListener {
     @PreDestroy
     public void close() {
         //优雅退出
+
+        for(int i = 0;i<YlcDeviceMap.getDEVICES().size();i++)
+        {
+
+        }
+
+        Set<Map.Entry<String, Session>> entries = YlcDeviceMap.getDEVICES().entrySet();
+        for (Map.Entry<String, Session> entry : entries) {
+            Session value = entry.getValue();
+            value.getChannel().close();
+            System.out.println("关闭连接： "+value.getChannel().remoteAddress());
+        }
         boss.shutdownGracefully();
         work.shutdownGracefully();
     }

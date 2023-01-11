@@ -24,4 +24,4 @@ server:
     path: /error
 
 netty:
-  port: 11111
+  port: 10000

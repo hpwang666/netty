@@ -13,6 +13,8 @@ import io.netty.handler.codec.ReplayingDecoder;
 import java.util.Base64;
 import java.util.List;
 
+import static com.wwp.model.YlcMsgType.UP_RT_STATUS;
+
 
 public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState> {
 
@@ -42,10 +44,13 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
     // skipBytes
     // readRetainedSlice
     //68f011220044aa
-    //心跳  680d000100033201060021353301000708
-    //认证  6822000000013201060021353301020A56342E312E3530000101010101010101010101020708
-    //计费模型验证请求0x05 680D110200053201060021353313240708
-    //计费模型请求   0x09  680B02000009320106002135330708
+    //心跳  680d050000033201060021353301005718
+    //认证  6822250000013201060021353301010F6C796B2D56323900001920168043024800000000C554
+    //计费模型验证请求0x05 680D01000005320106002135331324B538
+    //计费模型请求   0x09  680B0200000932010600213533506B
+    //上传实时状态   0x13  6840040000130000000000000000000000000000000032010600213533010202010000000000000000000000000000000000000000000000000000000000000000003213
+    //                   68409A0000133201060021353301202301081639000232010600213533010302015209000000000000000000000000000B00000040060000400600002C1A00000000B73E
+    //                   684025000013320106002135330120230108163900023201060021353301030201280928000000000000000000000000020000009001000090010000A4060000000045C1
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf buffer, List<Object> out) throws Exception {
         //System.out.println("state: "+this.state());
@@ -62,6 +67,9 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
                 try {
                     this.ylcMsgHeader = decodeHeader(ctx, buffer);
                     this.bytesRemainingInVariablePart = this.ylcMsgHeader.getLength();
+
+                    System.out.println("type: "+ this.ylcMsgHeader.getMsgType()+" length: "+this.ylcMsgHeader.getLength()+" seq: "+this.ylcMsgHeader.getSeq());
+
                     this.checkpoint(YlcMsgDecoder.DecoderState.READ_PAYLOAD);
                     break;
                 } catch (Exception e) {
@@ -77,7 +85,6 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
                         throw new DecoderException("too short "+ (this.ylcMsgHeader.getLength()-4+2));
                     }
 
-                    System.out.println("type: "+ this.ylcMsgHeader.getMsgType()+" length: "+this.ylcMsgHeader.getLength()+" seq: "+this.ylcMsgHeader.getSeq());
                     this.ylcDevMsg =decodePayload(ctx, buffer, this.ylcMsgHeader, 12, 32);
                     this.ylcDevMsg.setHeader(this.ylcMsgHeader);
                     this.ylcMsgHeader = null;
@@ -99,7 +106,7 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
                        throw new DecoderException("no crc bytes ");
                    crcL = buffer.readUnsignedByte();
                    crcH= buffer.readUnsignedByte();
-                  // System.out.println("crcL: "+crcL+"  crcH: "+crcH);
+                   //System.out.println("crcL: "+crcL+"  crcH: "+crcH);
                    out.add(new YlcResult(ylcDevMsg));
                    this.checkpoint(DecoderState.READ_HEADER);
                    break;
@@ -194,6 +201,8 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
                 return decodeRemoteOnAck(ctx,buffer,ylcMsgHeader);
             case REMOTE_OFF_ACK:
                 return decodeRemoteOffAck(ctx,buffer,ylcMsgHeader);
+            case TIME_CFG_ACK:
+                return decodeTimeCfgAck(ctx,buffer,ylcMsgHeader);
 
             case CARD_UPDATE_ACK:
                 return decodeCardUpdateAck(ctx,buffer,ylcMsgHeader);
@@ -241,6 +250,7 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
 
 
         msg.setSuccess(true);
+
 
         return msg;
     }
@@ -361,7 +371,7 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
 
         for(index=0;index<8;index++)
             serialId[index] =  buffer.readUnsignedByte();
-
+        msg.setSerialId(YlcStringUtils.bcd2string(serialId));
         msg.setPlugNo((int)buffer.readUnsignedByte()); //枪号
 
         buffer.skipBytes(7);
@@ -369,7 +379,7 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
         //TODO
         //剩余的字节
 
-
+        msg.setSuccess(true);
         return msg;
 
     }
@@ -378,12 +388,12 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
     {
         YlcDevMsg msg = new YlcDevMsg();
         int index=8;
-        short[] serialId = new short[8];
+        short[] serialId = new short[7];
         short[] cardId = new short[8];
 
-        for(index=0;index<8;index++)
+        for(index=0;index<7;index++)
             serialId[index] =  buffer.readUnsignedByte();
-
+        msg.setSerialId(YlcStringUtils.bcd2string(serialId));
         msg.setPlugNo((int)buffer.readUnsignedByte()); //枪号
 
         msg.setReqType((int)buffer.readUnsignedByte()); //启动方式
@@ -391,10 +401,13 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
 
         for(index=0;index<8;index++)
             cardId[index] =  buffer.readUnsignedByte();
-
+        System.out.println("物理卡号: "+YlcStringUtils.parseByte2HexStr(cardId));
         msg.setCardId(YlcStringUtils.bcd2string(cardId));
 
-        buffer.skipBytes(this.actualReadableBytes());
+        buffer.skipBytes(33);
+
+        msg.setSuccess(true);
+
         return msg;
     }
 
@@ -416,10 +429,31 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
         msg.setPlugNo((int)buffer.readUnsignedByte()); //枪号
         msg.setStartOk((int)buffer.readUnsignedByte());
         msg.setCtrlError((int)buffer.readUnsignedByte());
+        System.out.println("错误码: "+msg.getCtrlError());
         msg.setSuccess(true);
         return msg;
     }
 
+    private YlcDevMsg decodeTimeCfgAck(ChannelHandlerContext ctx, ByteBuf buffer, YlcMsgHeader ylcMsgHeader)
+    {
+        YlcDevMsg msg = new YlcDevMsg();
+        int index=8;
+        short[] serialId = new short[7];
+        short[] timeAck = new short[7];
+
+
+
+        for(index=0;index<7;index++)
+            serialId[index] =  buffer.readUnsignedByte();
+        msg.setSerialId(YlcStringUtils.bcd2string(serialId));
+
+        for(index=0;index<7;index++)
+            timeAck[index] =  buffer.readUnsignedByte();
+        //msg.setSerialId(YlcStringUtils.bcd2string(timeAck));
+
+        msg.setSuccess(true);
+        return msg;
+    }
     private YlcDevMsg decodeRemoteOffAck(ChannelHandlerContext ctx, ByteBuf buffer, YlcMsgHeader ylcMsgHeader)
     {
         YlcDevMsg msg = new YlcDevMsg();
@@ -432,7 +466,7 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
 
         msg.setPlugNo((int)buffer.readUnsignedByte()); //枪号
         msg.setStopOk((int)buffer.readUnsignedByte());
-
+        msg.setCtrlError((int)buffer.readUnsignedByte());
         msg.setSuccess(true);
         return msg;
     }

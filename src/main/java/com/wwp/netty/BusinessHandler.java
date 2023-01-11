@@ -19,6 +19,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.concurrent.*;
 import java.util.Date;
 import static com.wwp.model.YlcMsgType.GET_MODEL;
+import static com.wwp.model.YlcMsgType.RECORD_ACK;
 
 
 public class BusinessHandler extends ChannelInboundHandlerAdapter {
@@ -49,6 +50,7 @@ public class BusinessHandler extends ChannelInboundHandlerAdapter {
                     YlcMsgType typeAck=YlcMsgType.valueOf(0);
                     YlcResult r = (YlcResult) future.get();
                     System.out.println("respone: " + r.getMessage());
+                    System.out.println(" " );
                     if(r.getSuccess()){
                         YlcMsgType type = r.getYlcDevMsg().getHeader().getMsgType();
                         switch(type){
@@ -56,12 +58,18 @@ public class BusinessHandler extends ChannelInboundHandlerAdapter {
                             case AUTH:
                             case MODEL_VERIFY:
                             case GET_MODEL:
+                            case UP_CHARGE_REQ:
                                 typeAck = YlcMsgType.valueOf(type.value()+1);
                                 r.getYlcDevMsg().getHeader().setMsgType(typeAck);
                                 ctx.writeAndFlush(r);
                                 break;
-
+                            case RECORD:
+                                typeAck = RECORD_ACK;
+                                r.getYlcDevMsg().getHeader().setMsgType(typeAck);
+                                ctx.writeAndFlush(r);
+                                break;
                             case REMOTE_ON_ACK:
+                            case REMOTE_OFF_ACK:
                                 s =  YlcDeviceMap.getDEVICES().get(r.getYlcDevMsg().getSerialId());
                                 s.getAckFuture().setSuccess(YlcResult.OK("success"));
                                 System.out.println("dodo ");

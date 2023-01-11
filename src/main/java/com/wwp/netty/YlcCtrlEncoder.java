@@ -89,6 +89,8 @@ public class YlcCtrlEncoder extends MessageToByteEncoder<YlcCtrlMsg> {  //1
         ByteBuf buf = ctx.alloc().buffer(baseLen+4);
         buf.writeBytes(propertiesBuf.array());
         var14 = buf;
+
+
         return var14;
     }
 
@@ -143,6 +145,7 @@ public class YlcCtrlEncoder extends MessageToByteEncoder<YlcCtrlMsg> {  //1
         propertiesBuf.put((byte)(0x01));//卡的个数
         propertiesBuf.put(YlcStringUtils.string2bcd(ctrl.getLogicId()));
         propertiesBuf.put(Base64.getDecoder().decode(ctrl.getPhysId()));
+        //propertiesBuf.put(Base64.getDecoder().decode(ctrl.getAccount()));
 
         byte[] forCRC =  Arrays.copyOfRange(propertiesBuf.array(),2,baseLen+2);//15角标是不包含的
         int crc = YlcStringUtils.crc(forCRC,baseLen);
@@ -154,6 +157,9 @@ public class YlcCtrlEncoder extends MessageToByteEncoder<YlcCtrlMsg> {  //1
         ByteBuf buf = ctx.alloc().buffer(baseLen+4);
         buf.writeBytes(propertiesBuf.array());
         var14 = buf;
+        for (int i=0;i<baseLen+4;i++) {
+            System.out.print(" "+Integer.toHexString(buf.getByte(i)) );
+        }
         return var14;
     }
 }

@@ -25,7 +25,7 @@ public class DevCtrlServiceImpl implements IDevCtrlService {
     public YlcResult remoteDevOn(YlcCtrlMsg ctrlMsg)
     {
 
-        Session s =(Session) YlcDeviceMap.getDEVICES().get("32010203040506");
+        Session s =(Session) YlcDeviceMap.getDEVICES().get(ctrlMsg.getSerialId());
         if(s == null) return YlcResult.error("设备不在线");
 
         Future f = s.getChannel().writeAndFlush(ctrlMsg);
@@ -51,9 +51,38 @@ public class DevCtrlServiceImpl implements IDevCtrlService {
     }
 
     @Override
+    public YlcResult remoteDevOff(YlcCtrlMsg ctrlMsg)
+    {
+
+        Session s =(Session) YlcDeviceMap.getDEVICES().get(ctrlMsg.getSerialId());
+        if(s == null) return YlcResult.error("设备不在线");
+
+        Future f = s.getChannel().writeAndFlush(ctrlMsg);
+        f.addListener(future-> {
+            System.out.println("已经写成功啦");
+        });
+
+        try{
+            Thread.sleep(10);
+            YlcResult result =  (YlcResult) s.getAckFuture().get(5000, TimeUnit.MILLISECONDS);
+            System.out.println(Thread.currentThread()+"i: "+result);
+        }
+        catch(TimeoutException e)
+        {
+            // e.printStackTrace();
+            return YlcResult.error("设备没响应");
+        }
+        catch(InterruptedException| ExecutionException e)
+        {
+            return YlcResult.error("错误"+e.toString());
+        }
+        return YlcResult.OK("remoteDevOff");
+    }
+
+    @Override
     public YlcResult remoteAddPhysCard(YlcCtrlMsg ctrlMsg)
     {
-        Session s =(Session) YlcDeviceMap.getDEVICES().get("32010203040506");
+        Session s =(Session) YlcDeviceMap.getDEVICES().get(ctrlMsg.getSerialId());
         if(s == null) return YlcResult.error("设备不在线");
 
         Future f = s.getChannel().writeAndFlush(ctrlMsg);

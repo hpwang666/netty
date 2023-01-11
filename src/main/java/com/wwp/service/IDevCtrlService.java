@@ -7,6 +7,7 @@ public interface IDevCtrlService {
 
     YlcResult updateAccountByPhysId(YlcCtrlMsg ctrlMsg);
     YlcResult remoteDevOn(YlcCtrlMsg ctrlMsg);
+    YlcResult remoteDevOff(YlcCtrlMsg ctrlMsg);
 
     YlcResult remoteAddPhysCard(YlcCtrlMsg ctrlMsg);
 }

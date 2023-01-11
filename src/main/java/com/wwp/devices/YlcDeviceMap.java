@@ -4,6 +4,8 @@ import com.wwp.model.Session;
 import io.netty.channel.Channel;
 import io.netty.util.internal.PlatformDependent;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
@@ -34,6 +36,9 @@ public class YlcDeviceMap {
      */
     public static void put(String key, Session session) {
         DEVICES.put(key, session);
+    }
+    public static Session get(String key) {
+        return DEVICES.get(key);
     }
 
     public static boolean exist(String key){return DEVICES.containsKey(key);}
@@ -97,6 +102,21 @@ public class YlcDeviceMap {
      */
     public static ConcurrentMap<String, Session> getDEVICES() {
         return DEVICES;
+    }
+
+
+    public static List<String> listAllChannel() {
+
+        List<String> listAllChannel =new ArrayList<String>();
+        Set<Map.Entry<String, Session>> entries = DEVICES.entrySet();
+        for (Map.Entry<String, Session> entry : entries) {
+            String serialId = entry.getKey();
+            Session value = entry.getValue();
+            listAllChannel.add(serialId+": "+value.getChannel().remoteAddress());
+        }
+
+
+        return listAllChannel;
     }
 
 

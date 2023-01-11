@@ -1,6 +1,7 @@
 package com.wwp.netty;
 
 import com.wwp.entity.FeeModel;
+import com.wwp.model.YlcDevMsg;
 import com.wwp.model.YlcResult;
 import com.wwp.util.YlcStringUtils;
 import io.netty.buffer.ByteBuf;
@@ -10,6 +11,8 @@ import io.netty.handler.codec.MessageToByteEncoder;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Base64;
+
+import static com.wwp.util.YlcStringUtils.parseByte2HexStr;
 
 public class YlcMsgEncoder extends MessageToByteEncoder<YlcResult> {  //1
     @Override
@@ -35,6 +38,10 @@ public class YlcMsgEncoder extends MessageToByteEncoder<YlcResult> {  //1
                 return encodeModelVerifyAck(ctx, result);
             case GET_MODEL_ACK:
                 return encodeGetModelAck(ctx,result);
+            case RECORD_ACK:
+                return encodeRecordAck(ctx,result);
+            case UP_CHARGE_ACK:
+                return encodeUpChargeAck(ctx,result);
             default:
                 throw new IllegalArgumentException("Unknown message type: " );
         }
@@ -98,11 +105,34 @@ public class YlcMsgEncoder extends MessageToByteEncoder<YlcResult> {  //1
         ByteBuf var14;
         ByteBuf buf = ctx.alloc().buffer(16);
         buf.writeBytes(propertiesBuf.array());
+
+        ByteBuffer timeBuf = ByteBuffer.allocate(22);
+        timeBuf.put((byte)0x68);
+        timeBuf.put((byte)0x12);
+        timeBuf.put((byte)0x00);
+        timeBuf.put((byte)0x02);
+        timeBuf.put((byte)0x00);
+        timeBuf.put((byte)0x56);
+        timeBuf.put((byte)0x32);
+        timeBuf.put((byte)0x01);
+        timeBuf.put((byte)0x06);
+        timeBuf.put((byte)0x00);
+        timeBuf.put((byte)0x21);
+        timeBuf.put((byte)0x35);
+        timeBuf.put((byte)0x33);
+        timeBuf.put((byte)0x68);
+        timeBuf.put((byte)0xBF);
+        timeBuf.put((byte)0x29);
+        timeBuf.put((byte)0x15);
+        timeBuf.put((byte)0x0A);
+        timeBuf.put((byte)0x01);
+        timeBuf.put((byte)0x17);
+        timeBuf.put((byte)0x8C);
+        timeBuf.put((byte)0x61);
+
+        buf.writeBytes(timeBuf.array());
         var14 = buf;
-        for (int i=0;i<16;i++
-             ) {
-           System.out.print(" "+Integer.toHexString(buf.getByte(i)) );
-        }
+
 
         return var14;
     }
@@ -125,7 +155,10 @@ public class YlcMsgEncoder extends MessageToByteEncoder<YlcResult> {  //1
         propertiesBuf.put(YlcStringUtils.string2bcd(result.getYlcDevMsg().getSerialId()));
         propertiesBuf.put(YlcStringUtils.string2bcd(result.getYlcDevMsg().getModelCode()));
 
-        propertiesBuf.put((byte)0x01);//0x01验证总是不一致
+        System.out.println("计费模型编码： "+result.getYlcDevMsg().getModelCode());
+        if(result.getYlcDevMsg().getModelCode().equals("0000"))
+        propertiesBuf.put((byte)0x01);//0x01验证不一致
+        else propertiesBuf.put((byte)0x00);//0x01验证总是不一致
 
         byte[] forCRC =  Arrays.copyOfRange(propertiesBuf.array(),2,16);//15角标是不包含的
 
@@ -161,8 +194,9 @@ public class YlcMsgEncoder extends MessageToByteEncoder<YlcResult> {  //1
         propertiesBuf.put((byte)0x0A);
 
         propertiesBuf.put(YlcStringUtils.string2bcd(result.getYlcDevMsg().getSerialId()));
-      //  propertiesBuf.put(YlcStringUtils.string2bcd(result.getYlcMessage().getModelCode()));
-        propertiesBuf.put(YlcStringUtils.string2bcd(feeModel.getModelCode()));
+        //propertiesBuf.put(YlcStringUtils.string2bcd(feeModel.getModelCode()));
+        propertiesBuf.put((byte)0x01);
+        propertiesBuf.put((byte)0x00);
         propertiesBuf.put(Base64.getDecoder().decode(feeModel.getFee0()));
         propertiesBuf.put(Base64.getDecoder().decode(feeModel.getFee1()));
         propertiesBuf.put(Base64.getDecoder().decode(feeModel.getFee2()));
@@ -172,10 +206,12 @@ public class YlcMsgEncoder extends MessageToByteEncoder<YlcResult> {  //1
 
         propertiesBuf.put(Base64.getDecoder().decode(feeModel.getFeesByModel()));
 
+
         byte[] forCRC =  Arrays.copyOfRange(propertiesBuf.array(),2,baseLen+2);//15角标是不包含的
         int crc = YlcStringUtils.crc(forCRC,baseLen);
         propertiesBuf.put((byte)((crc>>8)&0xff));
         propertiesBuf.put((byte)(crc&0xff));
+
 
 
         ByteBuf var14;
@@ -183,7 +219,109 @@ public class YlcMsgEncoder extends MessageToByteEncoder<YlcResult> {  //1
         buf.writeBytes(propertiesBuf.array());
         var14 = buf;
 
+        System.out.println("");
         return var14;
+    }
+
+
+    private static ByteBuf encodeUpChargeAck(ChannelHandlerContext ctx, YlcResult result) {
+
+        //int topicNameBytes = ByteBufUtil.utf8Bytes("fuck dan dan ");
+        //ByteBuf propertiesBuf = ctx.alloc().buffer(339);
+
+        int baseLen=46-4;//总长度-4
+
+        ByteBuffer propertiesBuf = ByteBuffer.allocate(baseLen+4);
+        propertiesBuf.put((byte)0x68);
+        propertiesBuf.put((byte)0x2A);
+
+        propertiesBuf.put((byte)(result.getYlcDevMsg().getHeader().getSeq()&0xff));
+        propertiesBuf.put((byte)((result.getYlcDevMsg().getHeader().getSeq()>>8)&0xff));
+
+        propertiesBuf.put((byte)0x00);
+        propertiesBuf.put((byte)0x32);
+
+        propertiesBuf.put(YlcStringUtils.string2bcd(  YlcStringUtils.genBusinessId(result.getYlcDevMsg().getSerialId(),result.getYlcDevMsg().getPlugNo())  ));
+        propertiesBuf.put(YlcStringUtils.string2bcd(result.getYlcDevMsg().getSerialId()));
+        propertiesBuf.put((byte)(result.getYlcDevMsg().getPlugNo()&0xff));
+
+
+        propertiesBuf.put(YlcStringUtils.string2bcd("0000001122334455"));
+        propertiesBuf.put(YlcStringUtils.parseHexStr2Byte("0f000000"));//一元余额
+
+        propertiesBuf.put((byte)0x01);//鉴权成功0x01
+        propertiesBuf.put((byte)0x00);//错误码
+        byte[] forCRC =  Arrays.copyOfRange(propertiesBuf.array(),2,baseLen+2);//15角标是不包含的
+        int crc = YlcStringUtils.crc(forCRC,baseLen);
+        propertiesBuf.put((byte)((crc>>8)&0xff));
+        propertiesBuf.put((byte)(crc&0xff));
+
+        ByteBuf var14;
+        ByteBuf buf = ctx.alloc().buffer(baseLen+4);
+        buf.writeBytes(propertiesBuf.array());
+        var14 = buf;
+
+        return var14;
+    }
+    private static ByteBuf encodeRecordAck(ChannelHandlerContext ctx, YlcResult result) {
+
+        //int topicNameBytes = ByteBufUtil.utf8Bytes("fuck dan dan ");
+        // ByteBuf propertiesBuf = ctx.alloc().buffer(339);
+        int baseLen=25-4;//总长度-4
+        ByteBuffer propertiesBuf = ByteBuffer.allocate(baseLen+4);
+        propertiesBuf.put((byte)0x68);
+        propertiesBuf.put((byte)0x15);
+
+        propertiesBuf.put((byte)(result.getYlcDevMsg().getHeader().getSeq()&0xff));
+        propertiesBuf.put((byte)((result.getYlcDevMsg().getHeader().getSeq()>>8)&0xff));
+
+        propertiesBuf.put((byte)0x00);
+        propertiesBuf.put((byte)0x40);
+
+        propertiesBuf.put(YlcStringUtils.string2bcd(result.getYlcDevMsg().getBusinessId()));
+
+        propertiesBuf.put((byte)0x00);//0x01验证总是不一致
+
+        byte[] forCRC =  Arrays.copyOfRange(propertiesBuf.array(),2,baseLen+2);//15角标是不包含的
+
+        int crc = YlcStringUtils.crc(forCRC,baseLen);
+        propertiesBuf.put((byte)((crc>>8)&0xff));
+        propertiesBuf.put((byte)(crc&0xff));
+
+        showRecord(result.getYlcDevMsg());
+        ByteBuf var14;
+        ByteBuf buf = ctx.alloc().buffer(baseLen+4);
+        buf.writeBytes(propertiesBuf.array());
+        var14 = buf;
+
+        return var14;
+    }
+
+    private static void showRecord(YlcDevMsg msg){
+        byte[] totalKwh;
+        byte[] lossTotalKwh;
+        byte[] totalCost;
+        byte[] physCadr;
+
+        System.out.println(" ");
+        System.out.println("交易流水号："+msg.getBusinessId());
+
+        totalKwh =Base64.getDecoder().decode(msg.getYlcRecord().getRecordTotalKwh());
+        System.out.println("总电量："+ parseByte2HexStr(totalKwh));
+
+        lossTotalKwh =Base64.getDecoder().decode(msg.getYlcRecord().getLossTotalKwh());
+        System.out.println("计损电量："+ parseByte2HexStr(lossTotalKwh));
+
+        totalCost =Base64.getDecoder().decode(msg.getYlcRecord().getTotalCost());
+        System.out.println("总电量："+ parseByte2HexStr(totalCost));
+
+        System.out.println("停止原因："+ msg.getYlcRecord().getOverType());
+
+        totalCost =Base64.getDecoder().decode(msg.getYlcRecord().getTotalCost());
+        System.out.println("花费金额："+ parseByte2HexStr(totalCost));
+
+        physCadr = Base64.getDecoder().decode(msg.getYlcRecord().getPhysId());
+        System.out.println("总电量："+ parseByte2HexStr(physCadr));
     }
 }
 

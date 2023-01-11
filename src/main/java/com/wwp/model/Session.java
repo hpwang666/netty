@@ -41,5 +41,13 @@ public class Session {
         return channel.attr(sessionIdKey).get();
     }
 
+    @Override
+    public boolean equals(Object obj){
+       if(obj instanceof Session){
+           Session s1 =(Session)obj;
+           return (this.channel.remoteAddress().equals(s1.getChannel().remoteAddress()) );
+       }
+       else return  false;
+    }
 
 }

@@ -57,7 +57,48 @@ public class YlcStringUtils {
         return baos.toByteArray ();
     }
 
+    public static String parseByte2HexStr(byte[] buf) {
+        StringBuffer sb = new StringBuffer();
+        for (int i = 0; i < buf.length; i++) {
+            String hex = Integer.toHexString(buf[i] & 0xFF);
+            if (hex.length() == 1) {
+                hex = '0' + hex;
+            }
+            sb.append(hex.toUpperCase());
+        }
+        return sb.toString();
+    }
 
+    public static String parseByte2HexStr(short[] buf) {
+        StringBuffer sb = new StringBuffer();
+        for (int i = 0; i < buf.length; i++) {
+            String hex = Integer.toHexString(buf[i] & 0xFF);
+            if (hex.length() == 1) {
+                hex = '0' + hex;
+            }
+            sb.append(hex.toUpperCase());
+        }
+        return sb.toString();
+    }
+
+    /**
+     * 16进制转换为二进制
+     *
+     * @param hexStr
+     * @return
+     */
+    public static byte[] parseHexStr2Byte(String hexStr) {
+        if (hexStr.length() < 1) {
+            return null;
+        }
+        byte[] result = new byte[hexStr.length() / 2];
+        for (int i = 0; i < hexStr.length() / 2; i++) {
+            int high = Integer.parseInt(hexStr.substring(i * 2, i * 2 + 1), 16);
+            int low = Integer.parseInt(hexStr.substring(i * 2 + 1, i * 2 + 2), 16);
+            result[i] = (byte) (high * 16 + low);
+        }
+        return result;
+    }
 
 
 //    public static String IntsEncodeB64(int[] src,int length)
@@ -93,14 +134,51 @@ public class YlcStringUtils {
         catch (ParseException e){
             throw e;
         }
+    }
 
+    public static Date Date2cp56Time(short[] cp56Time)throws ParseException
+    {
+        if(cp56Time.length <7) throw new ParseException("too short ",0);
+        String year = "20"+(cp56Time[6]&0x7f);
+        String month = String.valueOf(cp56Time[5]&0x0f);
+        String day =  String.valueOf(cp56Time[4]&0x1f);
 
+        String hour =  String.valueOf(cp56Time[3]&0x1f);
+        String min = String.valueOf(cp56Time[2]&0x3f);
 
+        int sec = ((cp56Time[1]&0xff)<<8 |(cp56Time[0]))/1000;
+
+        try{
+            String dateStr =year+"-"+month+"-"+day+" "+hour+":"+min +":"+sec;
+            String strDateFormat = "yyyy-MM-dd HH:mm:ss";
+            SimpleDateFormat sdf = new SimpleDateFormat(strDateFormat);
+            return sdf.parse(dateStr);
+        }
+        catch (ParseException e){
+            throw e;
+        }
     }
 
 
-
    // CRC 由两字节组成，生成函数如下：
+
+    public static int crc(short[]  pData,int length)
+    {
+        int byCRCHi = 0xff;
+        int byCRCLo = 0xff;
+        int byIdx;
+        int crc;
+
+        for (int i = 0;i < length;i++ ) {
+            byIdx = (byCRCHi ^ pData[i])&0xff;
+            byCRCHi = (byCRCLo ^ gabyCRCHi[byIdx])&0xff;
+            byCRCLo = gabyCRCLo[byIdx]&0xff;
+        }
+        crc = byCRCHi&0xff;
+        crc <<= 8;
+        crc += byCRCLo&0xff;
+        return crc;
+    }
 
     public static int crc(byte[]  pData,int length)
     {
@@ -179,6 +257,7 @@ public class YlcStringUtils {
                     0x44,0x84,0x85,0x45,0x87,0x47,0x46,0x86,0x82,0x42,
                     0x43,0x83,0x41,0x81,0x80,0x40
             };
+
 
     static public String genBusinessId(String serialId,Integer plugNo)
     {

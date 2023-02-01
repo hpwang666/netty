@@ -1,5 +1,7 @@
 package com.wwp.netty;
 
+import cn.hutool.core.util.ArrayUtil;
+import cn.hutool.core.util.HexUtil;
 import com.wwp.entity.FeeModel;
 import com.wwp.model.YlcDevMsg;
 import com.wwp.model.YlcResult;
@@ -188,14 +190,24 @@ public class YlcMsgEncoder extends MessageToByteEncoder<YlcResult> {  //1
         //propertiesBuf.put(YlcStringUtils.string2bcd(feeModel.getModelCode()));
         propertiesBuf.put((byte)0x01);
         propertiesBuf.put((byte)0x00);
-        propertiesBuf.put(Base64.getDecoder().decode(feeModel.getFee0()));
-        propertiesBuf.put(Base64.getDecoder().decode(feeModel.getFee1()));
-        propertiesBuf.put(Base64.getDecoder().decode(feeModel.getFee2()));
-        propertiesBuf.put(Base64.getDecoder().decode(feeModel.getFee3()));
+
+        //截取4个字节，转换成byte 然后逆序
+        propertiesBuf.put(ArrayUtil.reverse(HexUtil.decodeHex(feeModel.getFee0().substring(0,4))));
+        propertiesBuf.put(ArrayUtil.reverse(HexUtil.decodeHex(feeModel.getFee0().substring(4))));
+
+        propertiesBuf.put(ArrayUtil.reverse(HexUtil.decodeHex(feeModel.getFee1().substring(0,4))));
+        propertiesBuf.put(ArrayUtil.reverse(HexUtil.decodeHex(feeModel.getFee1().substring(4))));
+
+        propertiesBuf.put(ArrayUtil.reverse(HexUtil.decodeHex(feeModel.getFee2().substring(0,4))));
+        propertiesBuf.put(ArrayUtil.reverse(HexUtil.decodeHex(feeModel.getFee2().substring(4))));
+
+        propertiesBuf.put(ArrayUtil.reverse(HexUtil.decodeHex(feeModel.getFee3().substring(0,4))));
+        propertiesBuf.put(ArrayUtil.reverse(HexUtil.decodeHex(feeModel.getFee3().substring(4))));
+
 
         propertiesBuf.put((byte)(feeModel.getLossRate()&0xff));
 
-        propertiesBuf.put(Base64.getDecoder().decode(feeModel.getFeesByModel()));
+        propertiesBuf.put(HexUtil.decodeHex(feeModel.getFeesByModel()));
 
 
         byte[] forCRC =  Arrays.copyOfRange(propertiesBuf.array(),2,baseLen+2);//15角标是不包含的
@@ -289,30 +301,19 @@ public class YlcMsgEncoder extends MessageToByteEncoder<YlcResult> {  //1
     }
 
     private static void showRecord(YlcDevMsg msg){
-        byte[] totalKwh;
-        byte[] lossTotalKwh;
-        byte[] totalCost;
-        byte[] physCadr;
+
 
         System.out.println(" ");
         System.out.println("交易流水号："+msg.getBusinessId());
 
-        totalKwh =Base64.getDecoder().decode(msg.getYlcRecord().getRecordTotalKwh());
-        System.out.println("总电量："+ parseByte2HexStr(totalKwh));
+        System.out.println("总电量："+ HexUtil.hexToInt(msg.getYlcRecord().getRecordTotalKwh()));
 
-        lossTotalKwh =Base64.getDecoder().decode(msg.getYlcRecord().getLossTotalKwh());
-        System.out.println("计损电量："+ parseByte2HexStr(lossTotalKwh));
+        System.out.println("计损电量："+ HexUtil.hexToInt(msg.getYlcRecord().getLossTotalKwh()));
 
-        totalCost =Base64.getDecoder().decode(msg.getYlcRecord().getTotalCost());
-        System.out.println("总电量："+ parseByte2HexStr(totalCost));
+        System.out.println("花费金额："+ HexUtil.hexToInt(msg.getYlcRecord().getTotalCost()));
 
         System.out.println("停止原因："+ msg.getYlcRecord().getOverType());
 
-        totalCost =Base64.getDecoder().decode(msg.getYlcRecord().getTotalCost());
-        System.out.println("花费金额："+ parseByte2HexStr(totalCost));
-
-        physCadr = Base64.getDecoder().decode(msg.getYlcRecord().getPhysId());
-        System.out.println("总电量："+ parseByte2HexStr(physCadr));
     }
 }
 

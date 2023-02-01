@@ -1,5 +1,7 @@
 package com.wwp.netty;
 
+import cn.hutool.core.util.ArrayUtil;
+import cn.hutool.core.util.HexUtil;
 import com.wwp.devices.YlcDeviceMap;
 import com.wwp.model.YlcMsgType;
 import com.wwp.model.*;
@@ -587,19 +589,19 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
 
         for(index=0;index<16;index++)//尖
             fee[index] =  buffer.readByte();
-        record.setFee0All(Base64.getEncoder().encodeToString(fee));
+        record.setFee0All(HexUtil.encodeHexStr(fee));
 
         for(index=0;index<16;index++)//峰
             fee[index] =  buffer.readByte();
-        record.setFee1All(Base64.getEncoder().encodeToString(fee));
+        record.setFee1All(HexUtil.encodeHexStr(fee));
 
         for(index=0;index<16;index++)//平
             fee[index] =  buffer.readByte();
-        record.setFee2All(Base64.getEncoder().encodeToString(fee));
+        record.setFee2All(HexUtil.encodeHexStr(fee));
 
         for(index=0;index<16;index++)//谷
             fee[index] =  buffer.readByte();
-        record.setFee3All(Base64.getEncoder().encodeToString(fee));
+        record.setFee3All(HexUtil.encodeHexStr(fee));
 
         byte[] recordStartKwh = new byte[5];
         byte[] recordEndKwh =new byte[5];
@@ -609,23 +611,23 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
 
         for(index=0;index<5;index++)
             recordStartKwh[index] =  buffer.readByte();
-        record.setRecordStartKwh(Base64.getEncoder().encodeToString(recordStartKwh));
+        record.setRecordStartKwh(HexUtil.encodeHexStr(ArrayUtil.reverse(recordStartKwh)));
 
         for(index=0;index<5;index++)
             recordEndKwh[index] =  buffer.readByte();
-        record.setRecordEndKwh(Base64.getEncoder().encodeToString(recordEndKwh));
+        record.setRecordEndKwh(HexUtil.encodeHexStr(ArrayUtil.reverse(recordEndKwh)));
 
         for(index=0;index<4;index++)
             recordTotalKwh[index] =  buffer.readByte();
-        record.setRecordTotalKwh(Base64.getEncoder().encodeToString(recordTotalKwh));
+        record.setRecordTotalKwh(HexUtil.encodeHexStr(ArrayUtil.reverse(recordTotalKwh)));
 
         for(index=0;index<4;index++)
             lossTotalKwh[index] =  buffer.readByte();
-        record.setLossTotalKwh(Base64.getEncoder().encodeToString(lossTotalKwh));
+        record.setLossTotalKwh(HexUtil.encodeHexStr(ArrayUtil.reverse(lossTotalKwh)));
 
         for(index=0;index<4;index++)
             totalCost[index] =  buffer.readByte();
-        record.setTotalCost(Base64.getEncoder().encodeToString(totalCost));
+        record.setTotalCost(HexUtil.encodeHexStr(ArrayUtil.reverse(totalCost)));
 
         buffer.skipBytes(17);//电动汽车唯一标识
 
@@ -640,7 +642,7 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
         byte[] physId = new byte[8];
         for(index=0;index<8;index++)
             physId[index] =  buffer.readByte();
-        record.setPhysId(Base64.getEncoder().encodeToString(physId));
+        record.setPhysId(HexUtil.encodeHexStr(physId));
 
         msg.setYlcRecord(record);
         msg.setSuccess(true);

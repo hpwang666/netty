@@ -113,7 +113,7 @@ public class MainApplicationTests {
         buffer.reset(); // 进行重置之后，将会恢复到mark的状态
     }
 
-
+    @Test
     public void testString()
     {
         short[] src={0x22,0,0x5};
@@ -163,11 +163,11 @@ public class MainApplicationTests {
 
     }
 
-    @Test
+
     public void testHutool()
     {
         byte[] src2={0x50,0x36,0x01,0x00};
-        String str3 = "80010000";
+        String str3 = "A0860100";
 
         //字节数组转换为字符串
         String str2 = HexUtil.encodeHexStr(src2);
@@ -179,9 +179,9 @@ public class MainApplicationTests {
         //这个转换不好用，int 你的数组必须至少4个字节长
         System.out.println(ByteUtil.bytesToInt(b2));
 
-        //当字节数组是小端序  可以用下面2种方式转换
+        //当字节数组是小端序  可以转换成大端方便阅读
         String str4 = HexUtil.encodeHexStr(ArrayUtil.reverse(b2));
-        System.out.println( HexUtil.hexToLong(str4));
+        System.out.println("b2 reverse: "+str4+" "+ HexUtil.hexToLong(str4));
 
 
 

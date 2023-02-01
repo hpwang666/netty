@@ -48,8 +48,11 @@ public class YlcCharger {
         ctrlMsg.setSerialId("32010600213533");
         ctrlMsg.setPlugNo(1);
         ctrlMsg.setLogicId("0000002022009090");//0000001000000573
-        ctrlMsg.setPhysId("AAAAANFLClQ=");//00000000D14B0A54
-        ctrlMsg.setAccount("oIYBAA==");//A0860100   1000.00元
+        //ctrlMsg.setPhysId("AAAAANFLClQ=");//00000000D14B0A54
+        //ctrlMsg.setAccount("oIYBAA==");//A0860100   1000.00元
+
+        ctrlMsg.setPhysId("00000000D14B0A54");//00000000D14B0A54
+        ctrlMsg.setAccount("0001860A");//A0860100   1000.00元
 
 
         YlcResult result =  devCtrlService.remoteDevOn(ctrlMsg);

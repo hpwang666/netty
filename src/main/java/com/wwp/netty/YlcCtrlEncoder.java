@@ -1,5 +1,7 @@
 package com.wwp.netty;
 
+import cn.hutool.core.util.ArrayUtil;
+import cn.hutool.core.util.HexUtil;
 import com.wwp.devices.YlcDeviceMap;
 import com.wwp.model.Session;
 import com.wwp.model.YlcCtrlMsg;
@@ -76,8 +78,12 @@ public class YlcCtrlEncoder extends MessageToByteEncoder<YlcCtrlMsg> {  //1
         propertiesBuf.put(YlcStringUtils.string2bcd(ctrl.getSerialId()));
         propertiesBuf.put((byte)(ctrl.getPlugNo()&0xff));
         propertiesBuf.put(YlcStringUtils.string2bcd(ctrl.getLogicId()));
-        propertiesBuf.put(Base64.getDecoder().decode(ctrl.getPhysId()));
-        propertiesBuf.put(Base64.getDecoder().decode(ctrl.getAccount()));
+        //propertiesBuf.put(Base64.getDecoder().decode(ctrl.getPhysId()));
+        propertiesBuf.put(HexUtil.decodeHex(ctrl.getPhysId()));
+
+        //propertiesBuf.put(Base64.getDecoder().decode(ctrl.getAccount()));
+        //转换成小端字节序
+        propertiesBuf.put(ArrayUtil.reverse(HexUtil.decodeHex(ctrl.getPhysId())));
 
         byte[] forCRC =  Arrays.copyOfRange(propertiesBuf.array(),2,baseLen+2);//15角标是不包含的
         int crc = YlcStringUtils.crc(forCRC,baseLen);
@@ -144,9 +150,7 @@ public class YlcCtrlEncoder extends MessageToByteEncoder<YlcCtrlMsg> {  //1
         propertiesBuf.put(YlcStringUtils.string2bcd(ctrl.getSerialId()));
         propertiesBuf.put((byte)(0x01));//卡的个数
         propertiesBuf.put(YlcStringUtils.string2bcd(ctrl.getLogicId()));
-        propertiesBuf.put(Base64.getDecoder().decode(ctrl.getPhysId()));
-        //propertiesBuf.put(Base64.getDecoder().decode(ctrl.getAccount()));
-
+        propertiesBuf.put(HexUtil.decodeHex(ctrl.getPhysId()));
         byte[] forCRC =  Arrays.copyOfRange(propertiesBuf.array(),2,baseLen+2);//15角标是不包含的
         int crc = YlcStringUtils.crc(forCRC,baseLen);
         propertiesBuf.put((byte)((crc>>8)&0xff));

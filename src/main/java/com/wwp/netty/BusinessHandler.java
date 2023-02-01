@@ -103,7 +103,7 @@ public class BusinessHandler extends ChannelInboundHandlerAdapter {
             @Override
             public void run() {
 //               try{
-//                   Thread.sleep(500);
+//                   Thread.sleep(2000);
 //               }
 //               catch(InterruptedException e)
 //                {
@@ -126,7 +126,7 @@ public class BusinessHandler extends ChannelInboundHandlerAdapter {
                         }
                     }
                     result.setSuccess(true);
-                    result.setMessage("ok");
+                    result.setMessage("数据库操作 ok");
                 }
                 else{
                     result.setSuccess(false);

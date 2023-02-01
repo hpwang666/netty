@@ -12,6 +12,7 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Base64;
 
+import static com.wwp.util.YlcStringUtils.Date2cp56Time;
 import static com.wwp.util.YlcStringUtils.parseByte2HexStr;
 
 public class YlcMsgEncoder extends MessageToByteEncoder<YlcResult> {  //1
@@ -113,22 +114,12 @@ public class YlcMsgEncoder extends MessageToByteEncoder<YlcResult> {  //1
         timeBuf.put((byte)0x02);
         timeBuf.put((byte)0x00);
         timeBuf.put((byte)0x56);
-        timeBuf.put((byte)0x32);
-        timeBuf.put((byte)0x01);
-        timeBuf.put((byte)0x06);
-        timeBuf.put((byte)0x00);
-        timeBuf.put((byte)0x21);
-        timeBuf.put((byte)0x35);
-        timeBuf.put((byte)0x33);
-        timeBuf.put((byte)0x68);
-        timeBuf.put((byte)0xBF);
-        timeBuf.put((byte)0x29);
-        timeBuf.put((byte)0x15);
-        timeBuf.put((byte)0x0A);
-        timeBuf.put((byte)0x01);
-        timeBuf.put((byte)0x17);
-        timeBuf.put((byte)0x8C);
-        timeBuf.put((byte)0x61);
+        timeBuf.put(YlcStringUtils.string2bcd(result.getYlcDevMsg().getSerialId()));
+        timeBuf.put(Date2cp56Time());
+        forCRC =  Arrays.copyOfRange(timeBuf.array(),2,20);//15角标是不包含的
+        crc = YlcStringUtils.crc(forCRC,18);
+        timeBuf.put((byte)((crc>>8)&0xff));
+        timeBuf.put((byte)(crc&0xff));
 
         buf.writeBytes(timeBuf.array());
         var14 = buf;
@@ -158,7 +149,7 @@ public class YlcMsgEncoder extends MessageToByteEncoder<YlcResult> {  //1
         System.out.println("计费模型编码： "+result.getYlcDevMsg().getModelCode());
         if(result.getYlcDevMsg().getModelCode().equals("0000"))
         propertiesBuf.put((byte)0x01);//0x01验证不一致
-        else propertiesBuf.put((byte)0x00);//0x01验证总是不一致
+        else propertiesBuf.put((byte)0x01);//0x00验证一致
 
         byte[] forCRC =  Arrays.copyOfRange(propertiesBuf.array(),2,16);//15角标是不包含的
 
@@ -246,7 +237,7 @@ public class YlcMsgEncoder extends MessageToByteEncoder<YlcResult> {  //1
         propertiesBuf.put((byte)(result.getYlcDevMsg().getPlugNo()&0xff));
 
 
-        propertiesBuf.put(YlcStringUtils.string2bcd("0000001122334455"));
+        propertiesBuf.put(YlcStringUtils.string2bcd("0000001122334455"));//逻辑卡号
         propertiesBuf.put(YlcStringUtils.parseHexStr2Byte("0f000000"));//一元余额
 
         propertiesBuf.put((byte)0x01);//鉴权成功0x01

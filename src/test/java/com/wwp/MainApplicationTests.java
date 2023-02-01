@@ -1,5 +1,12 @@
 package com.wwp;
 
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.io.checksum.crc16.CRC16Checksum;
+import cn.hutool.core.io.checksum.crc16.CRC16XModem;
+import cn.hutool.core.util.ArrayUtil;
+import cn.hutool.core.util.ByteUtil;
+import cn.hutool.core.util.CharsetUtil;
+import cn.hutool.core.util.HexUtil;
 import com.wwp.entity.DevCharger;
 import com.wwp.service.IDevChargerService;
 import com.wwp.service.impl.DevChargerServiceImpl;
@@ -15,6 +22,7 @@ import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.FutureListener;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.ComponentScan;
+import sun.nio.cs.UTF_32;
 
 import java.nio.ByteBuffer;
 import java.text.ParseException;
@@ -28,6 +36,8 @@ import java.util.stream.IntStream;
 
 import static com.wwp.util.YlcStringUtils.parseByte2HexStr;
 
+
+
 @ComponentScan(basePackages = {"com.wwp.common.annotation"})
 //@SpringBootTest(classes= MainApplication.class)
 public class MainApplicationTests {
@@ -37,7 +47,6 @@ public class MainApplicationTests {
 
     public void testBean()
     {
-
         IDevChargerService devChargerService =(IDevChargerService) SpringBeanUtils.getApplicationContext().getBean(DevChargerServiceImpl.class);
         DevCharger devCharger= devChargerService.getDevChargerBySerialNum("32010203040506");
         System.out.println("charger: " + devCharger.getDepartId());
@@ -70,30 +79,72 @@ public class MainApplicationTests {
 
     }
 
-    @Test
+
+
+    public void testBUffer()
+    {
+        ByteBuffer buffer = ByteBuffer.allocate(6);
+        // position: 0, limit: 6, capacity: 6
+
+        buffer.put((byte) 1);
+        buffer.put((byte) 2);
+        buffer.put((byte) 3);
+        // position: 3, limit: 6, capacity: 6
+
+        buffer.mark();  // 写入三个字节数据后进行标记
+        // position: 3, limit: 6, capacity: 6
+
+        buffer.put((byte) 4); // 再次写入一个字节数据
+        // position: 4, limit: 6, capacity: 6
+
+        buffer.reset(); // 对buffer进行重置，此时将恢复到Mark时的状态
+        // position: 3, limit: 6, capacity: 6
+
+        buffer.flip();  // 切换为读取模式，此时有三个数据可供读取
+        // position: 0, limit: 3, capacity: 6
+
+        System.out.println(buffer.get()+" "+buffer.get());  // 读取一个字节数据之后进行标记
+        buffer.mark();
+        // position: 1, limit: 3, capacity: 6
+
+        buffer.get(); // 继续读取一个字节数据
+        // position: 2, limit: 3, capacity: 6
+
+        buffer.reset(); // 进行重置之后，将会恢复到mark的状态
+    }
+
+
     public void testString()
     {
         short[] src={0x22,0,0x5};
         String s = YlcStringUtils.bcd2string(src);
         System.out.println(s.length()+" " +s.toString());
 
-        byte crcL,crcH;
+        short crcL,crcH;
 
-        byte[] src3 = {0x00,0x02,0x00,0x33,0x32,0x01,0x02,0x00,0x00,0x00,0x00,0x11,0x15,0x11,0x16,0x15,0x55,0x35,0x02,0x60,0x32,0x01,0x02,0x00,0x00,0x00,0x01,0x01,0x01,0x00};//0FE2};
-        byte[] src0={  0x00,0x01,0x00,0x03,0x32,0x01,0x02,0x00,0x00,0x00,0x01,0x01,0x00};//0x68,0x90};
-        short[] src1={  0x06,0x00,0x00,0x02 ,0x32 ,0x01,0x06,0x00,0x21,0x35,0x33,0x00};//0xc3,0xe9}; 19674
+        short[] src0={0x92,0x01,0x00,0x13,0x32,0x01,0x06,0x00,0x21,0x35,0x33,0x01,0x20,0x23,0x01,0x15,0x21,0x14,0x00,0x01,0x32,0x01,0x06,0x00,0x21,0x35,0x33,0x01,0x03,0x02,0x01,0x43,0x09,0x28,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x33,0x00,0x00,0x00,0xb8,0x24,0x00,0x00,0xb8,0x24,0x00,0x00,0x28,0x55,0x00,0x00,0x00,0x00};//0x68,0x90};
+        //crcL: 117  crcH: 132 166 87
 
-
+        byte[] src1={ 0x29,0x00,0x00,0x03,0x32,0x01,0x06,0x00,0x21,0x35,0x33,0x01,0x00};
+        // crcL: 57  crcH: 180 180 65
+        //       39  B4  B4 41
         //AUTH:  6822250000013201060021353301010F6C796B2D56323900001920168043024800000000C554
         //HEART: 680d050000033201060021353301005718
 
         short[] src_101={0x25,0x00,0x00,0x01,0x32,0x01,0x06,0x00,0x21,0x35,0x33,0x01,0x01,0x0F,0x6C,0x79,0x6B,0x2D,0x56,0x32,0x39,0x00,0x00,0x19,0x20,0x16,0x80,0x43,0x02,0x48,0x00,0x00,0x00,0x00};//,0xC5,0x54
       //68 22 40 00 00 01 32 01 06 00 21 35 33 01 01 0F 6C 79 6B 2D 56 32 39 00 00 19 20 16 80 43 02 48 00 00 00 00 D2 6D
 
-       System.out.println(" "+YlcStringUtils.crc(src1,src1.length));
-       crcL = (byte)(YlcStringUtils.crc(src1,src1.length)&0xff);
-        crcH = (byte)(YlcStringUtils.crc(src1,src1.length)>>8&0xff);
-        System.out.println("crc: "+Integer.toHexString(crcH)+" "+Integer.toHexString(crcL));
+        CRC16XModem crc16 = new CRC16XModem();
+        crc16.update(src1);
+        String hexValue = crc16.getHexValue(true);
+        System.out.println(hexValue);
+
+        //CRC16Checksum.getHexValue(true);
+        System.out.println(" "+YlcStringUtils.crc(src0,src0.length));
+       crcL = (short)(YlcStringUtils.crc(src1,src1.length)&0xff);
+        crcH = (short)(YlcStringUtils.crc(src1,src1.length)>>8&0xff);
+        System.out.printf(" crcH: %02x  crcL: %02x ",crcH,crcL);
+
 
 
 
@@ -112,17 +163,38 @@ public class MainApplicationTests {
 
     }
 
+    @Test
+    public void testHutool()
+    {
+        byte[] src2={0x50,0x36,0x01,0x00};
+        String str3 = "80010000";
+
+        //字节数组转换为字符串
+        String str2 = HexUtil.encodeHexStr(src2);
+        System.out.println(str2);
+
+        //字符串转换成字节数组
+        byte[] b2 = HexUtil.decodeHex(str3);
+
+        //这个转换不好用，int 你的数组必须至少4个字节长
+        System.out.println(ByteUtil.bytesToInt(b2));
+
+        //当字节数组是小端序  可以用下面2种方式转换
+        String str4 = HexUtil.encodeHexStr(ArrayUtil.reverse(b2));
+        System.out.println( HexUtil.hexToLong(str4));
+
+
+
+    }
     public void testTime()
     {
         short[] t ={0x98,0xB7,0x0E,0x11,0x10,0x03,0x14};
 
-       try{
-           Date d = YlcStringUtils.cp56Time2Date(t);
-           System.out.println(d);
-       }
-       catch(ParseException e){
-           e.printStackTrace();
-       }
+
+           Date d1 = YlcStringUtils.cp56Time2Date(t);
+           System.out.println(d1);
+
+
 
 
         String d = YlcStringUtils.genBusinessId("32010203040506",1);

@@ -5,11 +5,15 @@ import com.wwp.model.YlcMsgType;
 import com.wwp.model.*;
 import com.wwp.util.YlcStringUtils;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.ReplayingDecoder;
+import io.netty.util.AttributeKey;
 
 
+import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 
@@ -65,66 +69,123 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
         switch((YlcMsgDecoder.DecoderState)this.state()) {
             case READ_HEADER:
                 try {
-                    this.ylcMsgHeader = decodeHeader(ctx, buffer);
-                    this.bytesRemainingInVariablePart = this.ylcMsgHeader.getLength();
+                    AttributeKey<ByteBuf> sessionIdKey = AttributeKey.valueOf("ctxBytebuffer");
+                    ByteBuf ctxBytebuffer = ctx.channel().attr(sessionIdKey).get();
+                    if(ctxBytebuffer==null){
+                        ctxBytebuffer = ByteBufAllocator.DEFAULT.heapBuffer(1024);
+                        ctx.channel().attr(sessionIdKey).set(ctxBytebuffer);
+                        System.out.println("创建读写缓存");
+                    }
 
-                    System.out.println("type: "+ this.ylcMsgHeader.getMsgType()+" length: "+this.ylcMsgHeader.getLength()+" seq: "+this.ylcMsgHeader.getSeq());
+                    ByteBuf inBuffer= buffer.readBytes(6);//如果没有这么多数据，这里会直接异常返回
+                    //System.out.println("开始解码Header");
 
+                    this.ylcMsgHeader = decodeHeader(ctx, inBuffer);
+
+                    System.out.println("type: "+ this.ylcMsgHeader.getMsgType()+" length: "+this.ylcMsgHeader.getLength()+" seq: "+(this.ylcMsgHeader.getSeq()&0xffff));
                     this.checkpoint(YlcMsgDecoder.DecoderState.READ_PAYLOAD);
                     break;
                 } catch (Exception e) {
-                    this.checkpoint(YlcMsgDecoder.DecoderState.BAD_MESSAGE);
+                    this.checkpoint(YlcMsgDecoder.DecoderState.READ_HEADER);
                     System.out.println(e.toString());
                     out.add(YlcResult.error(e.toString()));
+                    buffer.skipBytes(this.actualReadableBytes());
+                    resetBufferIndex(ctx);
                     return;
                 }
 
             case READ_PAYLOAD:
+                //System.out.println("开始解码 Payload");
                 try {
-                    if (this.actualReadableBytes() < (this.ylcMsgHeader.getLength()-4+2)) {
-                        throw new DecoderException("too short "+ (this.ylcMsgHeader.getLength()-4+2));
-                    }
+                    ByteBuf inBuffer= buffer.readBytes(this.ylcMsgHeader.getLength()-4);//如果没有这么多数据，这里会直接异常返回
 
-                    this.ylcDevMsg =decodePayload(ctx, buffer, this.ylcMsgHeader, 12, 32);
+
+                    this.ylcDevMsg =decodePayload(ctx, inBuffer, this.ylcMsgHeader, 12, 32);
                     this.ylcDevMsg.setHeader(this.ylcMsgHeader);
-                    this.ylcMsgHeader = null;
                     this.checkpoint(DecoderState.READ_CRC);
 
 
                     //out.add(ylcMessage);
                     break;
                 } catch (Exception e) {
-                    this.checkpoint(YlcMsgDecoder.DecoderState.BAD_MESSAGE);
+                    this.checkpoint(YlcMsgDecoder.DecoderState.READ_HEADER);
                     out.add(YlcResult.error(e.toString()));
+                    buffer.skipBytes(this.actualReadableBytes());
+                    resetBufferIndex(ctx);
                     return;
                 }
 
             case READ_CRC:
 
                try{
-                   if(this.actualReadableBytes()<2)
-                       throw new DecoderException("no crc bytes ");
-                   crcL = buffer.readUnsignedByte();
-                   crcH= buffer.readUnsignedByte();
-                   //System.out.println("crcL: "+crcL+"  crcH: "+crcH);
-                   out.add(new YlcResult(ylcDevMsg));
-                   this.checkpoint(DecoderState.READ_HEADER);
+                   ByteBuf inBuffer= buffer.readBytes(2);//如果没有这么多数据，这里会直接异常返回
+
+                   crcL = inBuffer.readUnsignedByte();
+                   crcH= inBuffer.readUnsignedByte();
+
+
+
+                   AttributeKey<ByteBuf> sessionIdKey = AttributeKey.valueOf("ctxBytebuffer");
+                   ByteBuf ctxBytebuffer = ctx.channel().attr(sessionIdKey).get();
+
+                   inBuffer.resetReaderIndex();
+                   ctxBytebuffer.writeBytes(inBuffer,2);
+
+                   inBuffer.release();
+
+                   //System.out.println("reader: "+ctxBytebuffer.readerIndex()+" write: "+ctxBytebuffer.writerIndex());
+                   byte[] forCRC =  Arrays.copyOfRange(ctxBytebuffer.array(),2,this.ylcMsgHeader.getLength()+2);//15角标是不包含的
+
+                   int crc = YlcStringUtils.crc(forCRC,this.ylcMsgHeader.getLength());
+                  // System.out.printf(" crcH: %02x  crcL: %02x crc_h: %02x  crc_l: %02x \n",(crcH&0xff),(crcL&0xff),(crc>>8&0xff),(crc&0xff));
+                  // if((crcL&0xff) == (crc>>8&0xff) && (crcH&0xff)==(crc&0xff))
+                  if(true)
+                   {
+                       out.add(new YlcResult(ylcDevMsg));
+                       this.checkpoint(DecoderState.READ_HEADER);
+                       ctxBytebuffer.resetReaderIndex();//重置读Index
+                       ctxBytebuffer.resetWriterIndex();//重置写Index
+                   }
+                   else {
+                       //ctxBytebuffer.resetReaderIndex();//重置读Index
+                       //ctxBytebuffer.resetWriterIndex();//重置写Index
+                       System.out.println("length "+ctxBytebuffer.array().length);
+                       for(int i =0;i<this.ylcMsgHeader.getLength()+4;i++){
+                           System.out.printf("0x%02x,",ctxBytebuffer.readByte());
+                       }
+                       System.out.println(" ");
+                       throw new DecoderException("crc 错误");
+                   }
+
                    break;
                }
                 catch(Exception e){
-                    this.checkpoint(YlcMsgDecoder.DecoderState.BAD_MESSAGE);
+
+                    this.checkpoint(YlcMsgDecoder.DecoderState.READ_HEADER);
                     out.add(YlcResult.error(e.toString()));
+                    buffer.skipBytes(this.actualReadableBytes());
+                    resetBufferIndex(ctx);
                     return;
                 }
 
             case BAD_MESSAGE:
+                System.out.println("CRC 错误 ----------这个不起作用，不会跳转到这里");
                 this.checkpoint(DecoderState.READ_HEADER);
                 buffer.skipBytes(this.actualReadableBytes());
+
+
                 break;
             default:
                 throw new Error();
         }
 
+    }
+    private void resetBufferIndex(ChannelHandlerContext ctx)
+    {
+        AttributeKey<ByteBuf> sessionIdKey = AttributeKey.valueOf("ctxBytebuffer");
+        ByteBuf ctxBytebuffer = ctx.channel().attr(sessionIdKey).get();
+        ctxBytebuffer.resetReaderIndex();//重置读Index
+        ctxBytebuffer.resetWriterIndex();//重置写Index
     }
 
     @Override
@@ -135,21 +196,30 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
     }
 
     private  YlcMsgHeader decodeHeader(ChannelHandlerContext ctx, ByteBuf buffer) {
-        if (this.actualReadableBytes() < 6) {
 
-            throw new DecoderException("too short no header："+this.actualReadableBytes());
+
+        AttributeKey<ByteBuf> sessionIdKey = AttributeKey.valueOf("ctxBytebuffer");
+        ByteBuf ctxBytebuffer = ctx.channel().attr(sessionIdKey).get();
+
+       // for(int i=0;i<6;i++)
+            ctxBytebuffer.writeBytes(buffer,6);
+
+        //buffer.readBytes(ctxBytebuffer) ;
+
+        buffer.resetReaderIndex();//重置读Index
+        short b0 = buffer.readByte();
+        if(b0 != 0x68) {
+            buffer.release();
+            throw new DecoderException("wrong header "+ b0);
         }
-        
-        short b0 = buffer.readUnsignedByte();
-        if(b0 != 0x68)  throw new DecoderException("wrong header "+ b0);
 
-        int length = buffer.readUnsignedByte()&0xff;
-        int seq =  buffer.readUnsignedByte();
-        seq += buffer.readUnsignedByte()<<8;
-        int marker =  buffer.readUnsignedByte();
-        int b5 =    buffer.readUnsignedByte();
+        int length = buffer.readByte()&0xff;
+        int seq =  buffer.readByte();
+        seq += buffer.readByte()<<8;
+        int marker =  buffer.readByte();
+        int b5 =    buffer.readByte();
         YlcMsgType type = YlcMsgType.valueOf(b5);
-
+        buffer.release();
         return new YlcMsgHeader(length,seq,marker,type);
 
 /*
@@ -177,6 +247,14 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
     }
 
     private YlcDevMsg decodePayload(ChannelHandlerContext ctx, ByteBuf buffer, YlcMsgHeader ylcMsgHeader, int bytesRemainingInVariablePart, int maxClientIdLength)throws Exception {
+
+        AttributeKey<ByteBuf> sessionIdKey = AttributeKey.valueOf("ctxBytebuffer");
+        ByteBuf ctxBytebuffer = ctx.channel().attr(sessionIdKey).get();
+
+        //for(int i=0;i<(this.ylcMsgHeader.getLength()-4);i++)
+        //    buffer.readBytes(ctxBytebuffer);
+        ctxBytebuffer.writeBytes(buffer,this.ylcMsgHeader.getLength()-4);
+        buffer.resetReaderIndex();//重置读Index
 
         switch(ylcMsgHeader.getMsgType()) {
             case AUTH:
@@ -211,6 +289,7 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
                 return decodeRecord(ctx,buffer,ylcMsgHeader);
 
             default:
+                buffer.release();
                 return new YlcDevMsg(true,ylcMsgHeader,"no decode","null");
 
         }
@@ -231,7 +310,7 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
         buffer.skipBytes(21);//剩下的协议版本运营商就不要了
 
         msg.setSuccess(true);
-
+        buffer.release();
         return msg;
     }
 
@@ -251,7 +330,7 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
 
         msg.setSuccess(true);
 
-
+        buffer.release();
         return msg;
     }
 
@@ -272,7 +351,7 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
         msg.setModelCode(YlcStringUtils.bcd2string(model));
 
         msg.setSuccess(true);
-
+        buffer.release();
         return msg;
     }
 
@@ -289,7 +368,7 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
 
 
         msg.setSuccess(true);
-
+        buffer.release();
         return msg;
     }
 
@@ -355,6 +434,7 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
 
         msg.setSuccess(true);
         msg.setChargerStatus(chargerStatus);
+        buffer.release();
         return msg;
     }
 
@@ -378,7 +458,7 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
 
         //TODO
         //剩余的字节
-
+        buffer.release();
         msg.setSuccess(true);
         return msg;
 
@@ -407,7 +487,7 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
         buffer.skipBytes(33);
 
         msg.setSuccess(true);
-
+        buffer.release();
         return msg;
     }
 
@@ -431,6 +511,7 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
         msg.setCtrlError((int)buffer.readUnsignedByte());
         System.out.println("错误码: "+msg.getCtrlError());
         msg.setSuccess(true);
+        buffer.release();
         return msg;
     }
 
@@ -450,8 +531,9 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
         for(index=0;index<7;index++)
             timeAck[index] =  buffer.readUnsignedByte();
         //msg.setSerialId(YlcStringUtils.bcd2string(timeAck));
-
+        System.out.println("返回的配置时间： "+YlcStringUtils.cp56Time2Date(timeAck));
         msg.setSuccess(true);
+        buffer.release();
         return msg;
     }
     private YlcDevMsg decodeRemoteOffAck(ChannelHandlerContext ctx, ByteBuf buffer, YlcMsgHeader ylcMsgHeader)
@@ -468,6 +550,7 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
         msg.setStopOk((int)buffer.readUnsignedByte());
         msg.setCtrlError((int)buffer.readUnsignedByte());
         msg.setSuccess(true);
+        buffer.release();
         return msg;
     }
 
@@ -561,7 +644,7 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
 
         msg.setYlcRecord(record);
         msg.setSuccess(true);
-
+        buffer.release();
         return msg;
     }
 
@@ -577,7 +660,7 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
         msg.setSerialId(YlcStringUtils.bcd2string(serialId));
         msg.setSuccess( buffer.readUnsignedByte()==0x01);
         msg.setError(String.format("%d",buffer.readUnsignedByte()));//失败原因
-
+        buffer.release();
         return msg;
     }
 

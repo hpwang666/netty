@@ -5,6 +5,7 @@ import java.nio.ByteBuffer;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Base64;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.stream.IntStream;
 
@@ -113,50 +114,69 @@ public class YlcStringUtils {
 //        return Base64.getDecoder().decode(b64);
 //    }
 
-    public static Date cp56Time2Date(short[] cp56Time)throws ParseException
+    public static Date cp56Time2Date(short[] cp56Time)
     {
-        if(cp56Time.length <7) throw new ParseException("too short ",0);
-        String year = "20"+(cp56Time[6]&0x7f);
-        String month = String.valueOf(cp56Time[5]&0x0f);
-        String day =  String.valueOf(cp56Time[4]&0x1f);
+        Date date=null;
+        try {
+            if (cp56Time.length < 7) throw new ParseException("too short ", 0);
+            String year = "20" + (cp56Time[6] & 0x7f);
+            String month = String.valueOf(cp56Time[5] & 0x0f);
+            String day = String.valueOf(cp56Time[4] & 0x1f);
 
-        String hour =  String.valueOf(cp56Time[3]&0x1f);
-        String min = String.valueOf(cp56Time[2]&0x3f);
+            String hour = String.valueOf(cp56Time[3] & 0x1f);
+            String min = String.valueOf(cp56Time[2] & 0x3f);
 
-        int sec = ((cp56Time[1]&0xff)<<8 |(cp56Time[0]))/1000;
+            int sec = ((cp56Time[1] & 0xff) << 8 | (cp56Time[0])) / 1000;
 
-        try{
-            String dateStr =year+"-"+month+"-"+day+" "+hour+":"+min +":"+sec;
+
+            String dateStr = year + "-" + month + "-" + day + " " + hour + ":" + min + ":" + sec;
             String strDateFormat = "yyyy-MM-dd HH:mm:ss";
             SimpleDateFormat sdf = new SimpleDateFormat(strDateFormat);
-            return sdf.parse(dateStr);
+            date =  sdf.parse(dateStr);
         }
         catch (ParseException e){
-            throw e;
+             e.printStackTrace();
         }
+        return  date;
     }
 
-    public static Date Date2cp56Time(short[] cp56Time)throws ParseException
+    public static byte[] Date2cp56Time()
     {
-        if(cp56Time.length <7) throw new ParseException("too short ",0);
-        String year = "20"+(cp56Time[6]&0x7f);
-        String month = String.valueOf(cp56Time[5]&0x0f);
-        String day =  String.valueOf(cp56Time[4]&0x1f);
-
-        String hour =  String.valueOf(cp56Time[3]&0x1f);
-        String min = String.valueOf(cp56Time[2]&0x3f);
-
-        int sec = ((cp56Time[1]&0xff)<<8 |(cp56Time[0]))/1000;
-
+        byte[] cp56Time = new byte[7];
         try{
-            String dateStr =year+"-"+month+"-"+day+" "+hour+":"+min +":"+sec;
-            String strDateFormat = "yyyy-MM-dd HH:mm:ss";
-            SimpleDateFormat sdf = new SimpleDateFormat(strDateFormat);
-            return sdf.parse(dateStr);
+            Calendar calendar = Calendar.getInstance();
+            System.out.println("获取年份："+calendar.get(Calendar.YEAR));
+            System.out.println("获取月份："+calendar.get(Calendar.MONTH));// 0 - 11
+            System.out.println("获取日："+calendar.get(Calendar.DAY_OF_MONTH));
+            System.out.println("获取日："+calendar.get(Calendar.DAY_OF_WEEK));
+            System.out.println("获取时："+calendar.get(Calendar.HOUR_OF_DAY));
+            System.out.println("获取分："+calendar.get(Calendar.MINUTE));
+            System.out.println("获取秒："+calendar.get(Calendar.SECOND));
+
+
+            Integer year =calendar.get(Calendar.YEAR);
+            Integer month =calendar.get(Calendar.MONTH);
+            Integer day =calendar.get(Calendar.DAY_OF_MONTH);
+            Integer week = calendar.get(Calendar.DAY_OF_WEEK);
+            Integer hour =calendar.get(Calendar.HOUR_OF_DAY);
+            Integer min =calendar.get(Calendar.MINUTE);
+            Integer sec =calendar.get(Calendar.SECOND);
+
+
+
+            cp56Time[0] = (byte)((sec*1000)&0xff);
+            cp56Time[1] = (byte)(((sec*1000)>>8)&0xff);
+            cp56Time[2] = (byte)(min&0x3f);
+            cp56Time[3] = (byte)(hour&0x1f);
+            cp56Time[4] = (byte)((week&0xc0)|(day&0x3f));
+            cp56Time[5] = (byte)((month+1)&0x0f);
+            cp56Time[6] = (byte)((year-2000)&0x7f);
         }
-        catch (ParseException e){
-            throw e;
+        catch (Exception e){
+            e.printStackTrace();
         }
+
+        return cp56Time;
     }
 
 

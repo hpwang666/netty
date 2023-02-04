@@ -1,27 +1,15 @@
 package com.wwp.controller;
 
 import com.wwp.devices.YlcDeviceMap;
-import com.wwp.model.Session;
 import com.wwp.model.YlcCtrlMsg;
 import com.wwp.model.YlcResult;
-import com.wwp.service.IDevCtrlService;
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.FutureListener;
+import com.wwp.service.IYlcCtrlService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.netty.channel.Channel;
-
 import javax.annotation.Resource;
-import java.nio.ByteBuffer;
-import java.nio.channels.InterruptedByTimeoutException;
-import java.util.Base64;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.stream.IntStream;
 
 import static com.wwp.model.YlcMsgType.*;
 
@@ -29,7 +17,7 @@ import static com.wwp.model.YlcMsgType.*;
 @RequestMapping("/charger")
 public class YlcCharger {
     @Resource
-    IDevCtrlService devCtrlService;
+    IYlcCtrlService devCtrlService;
 
 
     @GetMapping("/channelList")

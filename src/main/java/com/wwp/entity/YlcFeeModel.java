@@ -5,7 +5,7 @@ import com.wwp.common.annotation.Id;
 import java.io.Serializable;
 import java.util.List;
 
-public class FeeModel implements Serializable {
+public class YlcFeeModel implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -16,7 +16,7 @@ public class FeeModel implements Serializable {
     private String modelCode;
 
     //将尖电费费率：40 0D 03 00 尖服务费费率：9C 40 00 00 转换成大端字节序存储为字符串(方便阅读查询)
-    // "00030D40 0000409C"
+    // "00030D40" "0000409C"
     private String fee0;//尖
 
     private String fee1;//峰
@@ -33,7 +33,7 @@ public class FeeModel implements Serializable {
     //里面存储有48个收费标准，按照半小时一条
     private String feesByModel;//将bin码直接转换成String 0x01,0x02,0x03 --->  "010203"
 
-    public FeeModel(String fee0,String fee1,String fee2,String fee3)
+    public YlcFeeModel(String fee0, String fee1, String fee2, String fee3)
     {
         this.fee0 = fee0;
         this.fee1 = fee1;
@@ -41,7 +41,7 @@ public class FeeModel implements Serializable {
         this.fee3 = fee3;
     }
 
-    public FeeModel() {
+    public YlcFeeModel() {
 
     }
 

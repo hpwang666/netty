@@ -1,17 +1,17 @@
 package com.wwp.netty;
 
 import com.wwp.devices.YlcDeviceMap;
-import com.wwp.entity.DevCharger;
-import com.wwp.entity.FeeModel;
-import com.wwp.mapper.FeeModelMapper;
+import com.wwp.entity.YlcCharger;
+import com.wwp.entity.YlcFeeModel;
+import com.wwp.mapper.YlcFeeModelMapper;
 import com.wwp.model.Session;
 import com.wwp.model.YlcDevMsg;
 
 import com.wwp.model.YlcMsgType;
 import com.wwp.model.YlcResult;
-import com.wwp.service.IDevChargerService;
-import com.wwp.service.IFeeModelService;
-import com.wwp.service.impl.DevChargerServiceImpl;
+import com.wwp.service.IYlcChargerService;
+import com.wwp.service.IYlcFeeModelService;
+import com.wwp.service.impl.YlcChargerServiceImpl;
 import com.wwp.util.SpringBeanUtils;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -25,16 +25,16 @@ import static com.wwp.model.YlcMsgType.RECORD_ACK;
 public class BusinessHandler extends ChannelInboundHandlerAdapter {
 
 
-   private IDevChargerService devChargerService;
+   private IYlcChargerService devChargerService;
 
 
     private DefaultEventExecutorGroup eventExecutorGroup;
-    private IFeeModelService feeModelService;
+    private IYlcFeeModelService feeModelService;
 
     BusinessHandler( DefaultEventExecutorGroup eventExecutorGroup)
     {
         this.eventExecutorGroup = eventExecutorGroup;
-        this.devChargerService =(IDevChargerService) SpringBeanUtils.getApplicationContext().getBean(DevChargerServiceImpl.class);
+        this.devChargerService =(IYlcChargerService) SpringBeanUtils.getApplicationContext().getBean(YlcChargerServiceImpl.class);
     }
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception
@@ -111,17 +111,17 @@ public class BusinessHandler extends ChannelInboundHandlerAdapter {
 //                }
                 YlcResult result = (YlcResult)msg;
                 YlcDevMsg inMsg = result.getYlcDevMsg();
-                DevCharger devCharger =  devChargerService.getDevChargerBySerialNum(inMsg.getSerialId());
+                YlcCharger ylcCharger =  devChargerService.getDevChargerBySerialNum(inMsg.getSerialId());
 
-                if(devCharger !=null){
+                if(ylcCharger !=null){
                     //System.out.println("charger: " + devCharger.getDepartId());
-                    devChargerService.updateTime(devCharger.getSerialNum(),new Date());
+                    devChargerService.updateTime(ylcCharger.getSerialNum(),new Date());
 
                     if(inMsg.getHeader().getMsgType() == GET_MODEL){
-                        FeeModel feeModel = ((FeeModelMapper)SpringBeanUtils.getApplicationContext().getBean(FeeModelMapper.class)).getFeeModelByCode("1324");
-                        if(feeModel != null){
-                            System.out.println("fee0: "+feeModel.getFee0());
-                            result.setResult(feeModel);
+                        YlcFeeModel ylcFeeModel = ((YlcFeeModelMapper)SpringBeanUtils.getApplicationContext().getBean(YlcFeeModelMapper.class)).getFeeModelByCode("1324");
+                        if(ylcFeeModel != null){
+                            System.out.println("fee0: "+ ylcFeeModel.getFee0());
+                            result.setResult(ylcFeeModel);
                             //businessFuture.setSuccess(new YlcResult<FeeModel>(true,feeModel,"ok"));
                         }
                     }

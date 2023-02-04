@@ -1,6 +1,6 @@
 package com.wwp.model;
 
-public class ChargerStatus {
+public class YlcStatusMsg {
 
 
     // 0x00归位  0x01：未归位  0x02 未知

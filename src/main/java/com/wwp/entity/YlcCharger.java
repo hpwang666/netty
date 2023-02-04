@@ -5,7 +5,7 @@ import com.wwp.common.annotation.Id;
 import java.io.Serializable;
 import java.util.Date;
 
-public class DevCharger implements Serializable {
+public class YlcCharger implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Id
@@ -29,7 +29,11 @@ public class DevCharger implements Serializable {
     //0x00：离线   0x01：故障  0x02：空闲  0x03：充电
     private Integer plugStatus;
 
+    private Integer errorCode;//故障代码
+
     private java.util.Date updateTime;
+
+    private Integer delFlag; //0--正常  1--删除
 
     public void setId(String id) {
         this.id = id;
@@ -73,6 +77,13 @@ public class DevCharger implements Serializable {
         return plugStatus;
     }
 
+    public Integer getErrorCode() {
+        return errorCode;
+    }
+    public void setErrorCode(Integer errorCode) {
+        this.errorCode = errorCode;
+    }
+
     public void setModelCode(String modelCode) {
         this.modelCode = modelCode;
     }
@@ -85,5 +96,12 @@ public class DevCharger implements Serializable {
     }
     public Date getUpdateTime() {
         return updateTime;
+    }
+
+    public Integer getDelFlag() {
+        return delFlag;
+    }
+    public void setDelFlag(Integer delFlag) {
+        this.delFlag = delFlag;
     }
 }

@@ -2,7 +2,7 @@ package com.wwp.netty;
 
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.HexUtil;
-import com.wwp.entity.FeeModel;
+import com.wwp.entity.YlcFeeModel;
 import com.wwp.model.YlcDevMsg;
 import com.wwp.model.YlcResult;
 import com.wwp.util.YlcStringUtils;
@@ -12,7 +12,6 @@ import io.netty.handler.codec.MessageToByteEncoder;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
-import java.util.Base64;
 
 import static com.wwp.util.YlcStringUtils.Date2cp56Time;
 import static com.wwp.util.YlcStringUtils.parseByte2HexStr;
@@ -174,7 +173,7 @@ public class YlcMsgEncoder extends MessageToByteEncoder<YlcResult> {  //1
         //ByteBuf propertiesBuf = ctx.alloc().buffer(339);
 
         int baseLen=98-4;//总长度-4
-        FeeModel feeModel =(FeeModel) result.getResult();
+        YlcFeeModel ylcFeeModel =(YlcFeeModel) result.getResult();
 
         ByteBuffer propertiesBuf = ByteBuffer.allocate(baseLen+4);
         propertiesBuf.put((byte)0x68);
@@ -192,22 +191,22 @@ public class YlcMsgEncoder extends MessageToByteEncoder<YlcResult> {  //1
         propertiesBuf.put((byte)0x00);
 
         //截取4个字节，转换成byte 然后逆序
-        propertiesBuf.put(ArrayUtil.reverse(HexUtil.decodeHex(feeModel.getFee0().substring(0,4))));
-        propertiesBuf.put(ArrayUtil.reverse(HexUtil.decodeHex(feeModel.getFee0().substring(4))));
+        propertiesBuf.put(ArrayUtil.reverse(HexUtil.decodeHex(ylcFeeModel.getFee0().substring(0,4))));
+        propertiesBuf.put(ArrayUtil.reverse(HexUtil.decodeHex(ylcFeeModel.getFee0().substring(4))));
 
-        propertiesBuf.put(ArrayUtil.reverse(HexUtil.decodeHex(feeModel.getFee1().substring(0,4))));
-        propertiesBuf.put(ArrayUtil.reverse(HexUtil.decodeHex(feeModel.getFee1().substring(4))));
+        propertiesBuf.put(ArrayUtil.reverse(HexUtil.decodeHex(ylcFeeModel.getFee1().substring(0,4))));
+        propertiesBuf.put(ArrayUtil.reverse(HexUtil.decodeHex(ylcFeeModel.getFee1().substring(4))));
 
-        propertiesBuf.put(ArrayUtil.reverse(HexUtil.decodeHex(feeModel.getFee2().substring(0,4))));
-        propertiesBuf.put(ArrayUtil.reverse(HexUtil.decodeHex(feeModel.getFee2().substring(4))));
+        propertiesBuf.put(ArrayUtil.reverse(HexUtil.decodeHex(ylcFeeModel.getFee2().substring(0,4))));
+        propertiesBuf.put(ArrayUtil.reverse(HexUtil.decodeHex(ylcFeeModel.getFee2().substring(4))));
 
-        propertiesBuf.put(ArrayUtil.reverse(HexUtil.decodeHex(feeModel.getFee3().substring(0,4))));
-        propertiesBuf.put(ArrayUtil.reverse(HexUtil.decodeHex(feeModel.getFee3().substring(4))));
+        propertiesBuf.put(ArrayUtil.reverse(HexUtil.decodeHex(ylcFeeModel.getFee3().substring(0,4))));
+        propertiesBuf.put(ArrayUtil.reverse(HexUtil.decodeHex(ylcFeeModel.getFee3().substring(4))));
 
 
-        propertiesBuf.put((byte)(feeModel.getLossRate()&0xff));
+        propertiesBuf.put((byte)(ylcFeeModel.getLossRate()&0xff));
 
-        propertiesBuf.put(HexUtil.decodeHex(feeModel.getFeesByModel()));
+        propertiesBuf.put(HexUtil.decodeHex(ylcFeeModel.getFeesByModel()));
 
 
         byte[] forCRC =  Arrays.copyOfRange(propertiesBuf.array(),2,baseLen+2);//15角标是不包含的
@@ -306,13 +305,13 @@ public class YlcMsgEncoder extends MessageToByteEncoder<YlcResult> {  //1
         System.out.println(" ");
         System.out.println("交易流水号："+msg.getBusinessId());
 
-        System.out.println("总电量："+ HexUtil.hexToInt(msg.getYlcRecord().getRecordTotalKwh()));
+        System.out.println("总电量："+ msg.getYlcRecordMsg().getRecordTotalKwh());
 
-        System.out.println("计损电量："+ HexUtil.hexToInt(msg.getYlcRecord().getLossTotalKwh()));
+        System.out.println("计损电量："+ msg.getYlcRecordMsg().getLossTotalKwh());
 
-        System.out.println("花费金额："+ HexUtil.hexToInt(msg.getYlcRecord().getTotalCost()));
+        System.out.println("花费金额："+ msg.getYlcRecordMsg().getTotalCost());
 
-        System.out.println("停止原因："+ msg.getYlcRecord().getOverType());
+        System.out.println("停止原因："+ msg.getYlcRecordMsg().getOverType());
 
     }
 }

@@ -1,15 +1,12 @@
 package com.wwp;
 
-import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.io.checksum.crc16.CRC16Checksum;
 import cn.hutool.core.io.checksum.crc16.CRC16XModem;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ByteUtil;
-import cn.hutool.core.util.CharsetUtil;
 import cn.hutool.core.util.HexUtil;
-import com.wwp.entity.DevCharger;
-import com.wwp.service.IDevChargerService;
-import com.wwp.service.impl.DevChargerServiceImpl;
+import com.wwp.entity.YlcCharger;
+import com.wwp.service.IYlcChargerService;
+import com.wwp.service.impl.YlcChargerServiceImpl;
 import com.wwp.util.SpringBeanUtils;
 import com.wwp.util.YlcStringUtils;
 import io.netty.buffer.ByteBuf;
@@ -22,10 +19,8 @@ import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.FutureListener;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.ComponentScan;
-import sun.nio.cs.UTF_32;
 
 import java.nio.ByteBuffer;
-import java.text.ParseException;
 import java.util.Base64;
 import java.util.Date;
 import java.util.concurrent.Callable;
@@ -47,9 +42,9 @@ public class MainApplicationTests {
 
     public void testBean()
     {
-        IDevChargerService devChargerService =(IDevChargerService) SpringBeanUtils.getApplicationContext().getBean(DevChargerServiceImpl.class);
-        DevCharger devCharger= devChargerService.getDevChargerBySerialNum("32010203040506");
-        System.out.println("charger: " + devCharger.getDepartId());
+        IYlcChargerService devChargerService =(IYlcChargerService) SpringBeanUtils.getApplicationContext().getBean(YlcChargerServiceImpl.class);
+        YlcCharger ylcCharger = devChargerService.getDevChargerBySerialNum("32010203040506");
+        System.out.println("charger: " + ylcCharger.getDepartId());
     }
 
     public  void testServer()
@@ -113,7 +108,7 @@ public class MainApplicationTests {
         buffer.reset(); // 进行重置之后，将会恢复到mark的状态
     }
 
-    @Test
+
     public void testString()
     {
         short[] src={0x22,0,0x5};
@@ -163,10 +158,11 @@ public class MainApplicationTests {
 
     }
 
-
+    @Test
     public void testHutool()
     {
         byte[] src2={0x50,0x36,0x01,0x00};
+        Integer I1=100;
         String str3 = "A0860100";
 
         //字节数组转换为字符串
@@ -176,8 +172,12 @@ public class MainApplicationTests {
         //字符串转换成字节数组
         byte[] b2 = HexUtil.decodeHex(str3);
 
-        //这个转换不好用，int 你的数组必须至少4个字节长
+        //这个转换不好用，int 你的数组必须至少4个字节长，也只转换前4个字节
+        //但是不用反转 直接小端模式
         System.out.println(ByteUtil.bytesToInt(b2));
+
+        System.out.println(HexUtil.encodeHexStr(ByteUtil.intToBytes(I1)));
+
 
         //当字节数组是小端序  可以转换成大端方便阅读
         String str4 = HexUtil.encodeHexStr(ArrayUtil.reverse(b2));

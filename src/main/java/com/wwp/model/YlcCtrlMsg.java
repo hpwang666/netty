@@ -7,7 +7,7 @@ public class YlcCtrlMsg {
     private String serialId;
     private Integer plugNo;
     private YlcMsgType msgType;
-    private String businessId;
+    private String orderId;
     private String logicId;//逻辑卡号用于显示在桩屏幕上便于用户核对卡信息
     private String physId;//读卡器读取到的卡号为“物理卡号” 用于电桩与服务器交互
     private Date date;

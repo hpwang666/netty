@@ -2,7 +2,7 @@ package com.wwp.model;
 
 import java.util.Date;
 
-public class YlcRecord {
+public class YlcRecordMsg {
     private Date startTime;
     private Date endTime;
 /*
@@ -33,11 +33,11 @@ public class YlcRecord {
     private String fee3All;
 
 
-    private String recordStartKwh;
-    private String recordEndKwh;
-    private String recordTotalKwh;
-    private String lossTotalKwh;//计损总电量
-    private String totalCost;//所有花费
+    //private String recordStartKwh; //这两个是5个字节
+   // private String recordEndKwh;
+    private Integer recordTotalKwh;
+    private Integer lossTotalKwh;//计损总电量
+    private Integer totalCost;//所有花费
 
     //交易方式 0x01:app    0x02:card  0x04:离线卡启东  0x05:vin码
     private Integer tradeType;
@@ -48,7 +48,7 @@ public class YlcRecord {
 
     private String physId; //物理卡号
 
-    public YlcRecord()
+    public YlcRecordMsg()
     {
 
     }
@@ -95,38 +95,26 @@ public class YlcRecord {
         return fee3All;
     }
 
-    public void setRecordStartKwh(String recordStartKwh) {
-        this.recordStartKwh = recordStartKwh;
-    }
-    public String getRecordStartKwh() {
-        return recordStartKwh;
-    }
 
-    public void setRecordEndKwh(String recordEndKwh) {
-        this.recordEndKwh = recordEndKwh;
-    }
-    public String getRecordEndKwh() {
-        return recordEndKwh;
-    }
 
-    public void setRecordTotalKwh(String recordTotalKwh) {
+    public void setRecordTotalKwh(Integer recordTotalKwh) {
         this.recordTotalKwh = recordTotalKwh;
     }
-    public String getRecordTotalKwh() {
+    public Integer getRecordTotalKwh() {
         return recordTotalKwh;
     }
 
-    public void setLossTotalKwh(String lossTotalKwh) {
+    public void setLossTotalKwh(Integer lossTotalKwh) {
         this.lossTotalKwh = lossTotalKwh;
     }
-    public String getLossTotalKwh() {
+    public Integer getLossTotalKwh() {
         return lossTotalKwh;
     }
 
-    public void setTotalCost(String totalCost) {
+    public void setTotalCost(Integer totalCost) {
         this.totalCost = totalCost;
     }
-    public String getTotalCost() {
+    public Integer getTotalCost() {
         return totalCost;
     }
 

@@ -1,6 +1,6 @@
 package com.wwp.netty;
 
-import cn.hutool.core.util.ArrayUtil;
+import cn.hutool.core.util.ByteUtil;
 import cn.hutool.core.util.HexUtil;
 import com.wwp.devices.YlcDeviceMap;
 import com.wwp.model.YlcMsgType;
@@ -14,12 +14,8 @@ import io.netty.handler.codec.ReplayingDecoder;
 import io.netty.util.AttributeKey;
 
 
-import java.nio.ByteBuffer;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.List;
-
-import static com.wwp.model.YlcMsgType.UP_RT_STATUS;
 
 
 public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState> {
@@ -288,7 +284,7 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
                 return decodeCardUpdateAck(ctx,buffer,ylcMsgHeader);
 
             case RECORD:
-                return decodeRecord(ctx,buffer,ylcMsgHeader);
+                return decodeOrder(ctx,buffer,ylcMsgHeader);
 
             default:
                 buffer.release();
@@ -384,7 +380,7 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
 
 
 
-        ChargerStatus chargerStatus = new ChargerStatus();
+        YlcStatusMsg ylcStatusMsg = new YlcStatusMsg();
 
         for(index=0;index<16;index++)
             businessId[index] =  buffer.readUnsignedByte();
@@ -397,45 +393,45 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
 
         msg.setPlugNo((int)buffer.readUnsignedByte()); //枪号
         msg.setPlugStatus((int)buffer.readUnsignedByte());//枪状态
-        chargerStatus.setPlugHoming((int)buffer.readUnsignedByte());//是否归位
-        chargerStatus.setSlotIn((int)buffer.readUnsignedByte()); //是否插枪
+        ylcStatusMsg.setPlugHoming((int)buffer.readUnsignedByte());//是否归位
+        ylcStatusMsg.setSlotIn((int)buffer.readUnsignedByte()); //是否插枪
 
 
-        chargerStatus.setVoltage((int)buffer.readUnsignedByte()+( (int)buffer.readUnsignedByte()<<8&0xff00));//
-        chargerStatus.setCurrent((int)buffer.readUnsignedByte()+( (int)buffer.readUnsignedByte()<<8&0xff00));;
-        chargerStatus.setWireTmp((int)buffer.readUnsignedByte());
+        ylcStatusMsg.setVoltage((int)buffer.readUnsignedByte()+( (int)buffer.readUnsignedByte()<<8&0xff00));//
+        ylcStatusMsg.setCurrent((int)buffer.readUnsignedByte()+( (int)buffer.readUnsignedByte()<<8&0xff00));;
+        ylcStatusMsg.setWireTmp((int)buffer.readUnsignedByte());
 
-        System.out.println("枪状态 "+msg.getPlugStatus()+"  归位: "+chargerStatus.getPlugHoming()+"  插枪："+chargerStatus.getSlotIn());
-        System.out.println("电压： "+chargerStatus.getVoltage());
+        System.out.println("枪状态 "+msg.getPlugStatus()+"  归位: "+ ylcStatusMsg.getPlugHoming()+"  插枪："+ ylcStatusMsg.getSlotIn());
+        System.out.println("电压： "+ ylcStatusMsg.getVoltage());
 
         for(index=0;index<8;index++)
             wireId[index] =  buffer.readUnsignedByte();
 
-        chargerStatus.setSOC((int)buffer.readUnsignedByte());
-        chargerStatus.setBatteryTmp((int)buffer.readUnsignedByte());
-        chargerStatus.setTotalChargeTime((int)buffer.readUnsignedByte()+((int) buffer.readUnsignedByte()<<8&0xff00));
-        chargerStatus.setRemainChargeTime((int)buffer.readUnsignedByte()+( (int)buffer.readUnsignedByte()<<8&0xff00));
+        ylcStatusMsg.setSOC((int)buffer.readUnsignedByte());
+        ylcStatusMsg.setBatteryTmp((int)buffer.readUnsignedByte());
+        ylcStatusMsg.setTotalChargeTime((int)buffer.readUnsignedByte()+((int) buffer.readUnsignedByte()<<8&0xff00));
+        ylcStatusMsg.setRemainChargeTime((int)buffer.readUnsignedByte()+( (int)buffer.readUnsignedByte()<<8&0xff00));
 
         long usedKwh=0;
         for(index=0;index<4;index++)
             usedKwh |=  buffer.readUnsignedByte()<<(index*8);
-        chargerStatus.setUsedKwh(usedKwh);
+        ylcStatusMsg.setUsedKwh(usedKwh);
 
         long lossKwh=0;
         for(index=0;index<4;index++)
             lossKwh |=  buffer.readUnsignedByte()<<(index*8);
-        chargerStatus.setLossKwh(lossKwh);
+        ylcStatusMsg.setLossKwh(lossKwh);
 
         long usedMoney=0;
         for(index=0;index<4;index++)
             usedMoney |=  buffer.readUnsignedByte()<<(index*8);
-        chargerStatus.setUsedMoney(usedMoney);
+        ylcStatusMsg.setUsedMoney(usedMoney);
 
-        System.out.println("充电度数： "+chargerStatus.getUsedKwh()+" 已充金额："+chargerStatus.getUsedMoney());
+        System.out.println("充电度数： "+ ylcStatusMsg.getUsedKwh()+" 已充金额："+ ylcStatusMsg.getUsedMoney());
         buffer.skipBytes(2);
 
         msg.setSuccess(true);
-        msg.setChargerStatus(chargerStatus);
+        msg.setYlcStatusMsg(ylcStatusMsg);
         buffer.release();
         return msg;
     }
@@ -556,7 +552,7 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
         return msg;
     }
 
-    private YlcDevMsg decodeRecord(ChannelHandlerContext ctx, ByteBuf buffer, YlcMsgHeader ylcMsgHeader) throws Exception
+    private YlcDevMsg decodeOrder(ChannelHandlerContext ctx, ByteBuf buffer, YlcMsgHeader ylcMsgHeader) throws Exception
     {
         YlcDevMsg msg = new YlcDevMsg();
 
@@ -576,7 +572,7 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
 
         msg.setPlugNo((int)buffer.readUnsignedByte()); //枪号
 
-        YlcRecord record = new YlcRecord();
+        YlcRecordMsg record = new YlcRecordMsg();
 
 
         for(index=0;index<7;index++)
@@ -611,23 +607,23 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
 
         for(index=0;index<5;index++)
             recordStartKwh[index] =  buffer.readByte();
-        record.setRecordStartKwh(HexUtil.encodeHexStr(ArrayUtil.reverse(recordStartKwh)));
+        //record.setRecordStartKwh(HexUtil.encodeHexStr(ArrayUtil.reverse(recordStartKwh)));
 
         for(index=0;index<5;index++)
             recordEndKwh[index] =  buffer.readByte();
-        record.setRecordEndKwh(HexUtil.encodeHexStr(ArrayUtil.reverse(recordEndKwh)));
+        //record.setRecordEndKwh(HexUtil.encodeHexStr(ArrayUtil.reverse(recordEndKwh)));
 
         for(index=0;index<4;index++)
             recordTotalKwh[index] =  buffer.readByte();
-        record.setRecordTotalKwh(HexUtil.encodeHexStr(ArrayUtil.reverse(recordTotalKwh)));
+        record.setRecordTotalKwh(ByteUtil.bytesToInt(recordTotalKwh));
 
         for(index=0;index<4;index++)
             lossTotalKwh[index] =  buffer.readByte();
-        record.setLossTotalKwh(HexUtil.encodeHexStr(ArrayUtil.reverse(lossTotalKwh)));
+        record.setLossTotalKwh(ByteUtil.bytesToInt(lossTotalKwh));
 
         for(index=0;index<4;index++)
             totalCost[index] =  buffer.readByte();
-        record.setTotalCost(HexUtil.encodeHexStr(ArrayUtil.reverse(totalCost)));
+        record.setTotalCost(ByteUtil.bytesToInt(totalCost));
 
         buffer.skipBytes(17);//电动汽车唯一标识
 
@@ -644,7 +640,7 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
             physId[index] =  buffer.readByte();
         record.setPhysId(HexUtil.encodeHexStr(physId));
 
-        msg.setYlcRecord(record);
+        msg.setYlcRecordMsg(record);
         msg.setSuccess(true);
         buffer.release();
         return msg;

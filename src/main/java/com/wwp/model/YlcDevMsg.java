@@ -1,7 +1,6 @@
 package com.wwp.model;
 
 import com.wwp.common.annotation.Id;
-import com.wwp.entity.FeeModel;
 
 public class YlcDevMsg {
 
@@ -9,7 +8,7 @@ public class YlcDevMsg {
     private String id;
 
     private YlcMsgHeader header;
-    private YlcRecord ylcRecord;
+    private YlcRecordMsg ylcRecordMsg;
 
     private Object payload;
     private String error;
@@ -37,7 +36,7 @@ public class YlcDevMsg {
     private Integer plugStatus;
 
     //充电枪状态
-    private ChargerStatus chargerStatus;
+    private YlcStatusMsg ylcStatusMsg;
 
     //启动方式
     private Integer reqType;
@@ -89,11 +88,11 @@ public class YlcDevMsg {
 
     }
 
-    public void setYlcRecord(YlcRecord ylcRecord) {
-        this.ylcRecord = ylcRecord;
+    public void setYlcRecordMsg(YlcRecordMsg ylcRecordMsg) {
+        this.ylcRecordMsg = ylcRecordMsg;
     }
-    public YlcRecord getYlcRecord() {
-        return ylcRecord;
+    public YlcRecordMsg getYlcRecordMsg() {
+        return ylcRecordMsg;
     }
 
     public void setModelCode(String modelCode) {
@@ -176,11 +175,11 @@ public class YlcDevMsg {
         return plugStatus;
     }
 
-    public void setChargerStatus(ChargerStatus chargerStatus) {
-        this.chargerStatus = chargerStatus;
+    public void setYlcStatusMsg(YlcStatusMsg ylcStatusMsg) {
+        this.ylcStatusMsg = ylcStatusMsg;
     }
-    public ChargerStatus getChargerStatus() {
-        return chargerStatus;
+    public YlcStatusMsg getYlcStatusMsg() {
+        return ylcStatusMsg;
     }
 
     public void setReqType(Integer reqType) {

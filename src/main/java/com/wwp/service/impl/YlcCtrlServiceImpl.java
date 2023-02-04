@@ -4,7 +4,7 @@ import com.wwp.devices.YlcDeviceMap;
 import com.wwp.model.Session;
 import com.wwp.model.YlcCtrlMsg;
 import com.wwp.model.YlcResult;
-import com.wwp.service.IDevCtrlService;
+import com.wwp.service.IYlcCtrlService;
 import io.netty.util.concurrent.Future;
 import org.springframework.stereotype.Service;
 
@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 @Service
-public class DevCtrlServiceImpl implements IDevCtrlService {
+public class YlcCtrlServiceImpl implements IYlcCtrlService {
 
     @Override
     public YlcResult updateAccountByPhysId(YlcCtrlMsg ctrlMsg)

@@ -4,12 +4,12 @@ import java.util.Date;
 
 //用于平台主动下发指令数据
 public class YlcCtrlMsg {
-    private String serialId;
+    private String serialNum;
     private Integer plugNo;
     private YlcMsgType msgType;
-    private String orderId;
-    private String logicId;//逻辑卡号用于显示在桩屏幕上便于用户核对卡信息
-    private String physId;//读卡器读取到的卡号为“物理卡号” 用于电桩与服务器交互
+    private String orderNum;
+    private String logicNum;//逻辑卡号用于显示在桩屏幕上便于用户核对卡信息
+    private String physicalNum;//读卡器读取到的卡号为“物理卡号” 用于电桩与服务器交互
     private Date date;
 
     //账户余额 4字节bin码---->b64编码
@@ -23,11 +23,11 @@ public class YlcCtrlMsg {
         return msgType;
     }
 
-    public void setSerialId(String serialId) {
-        this.serialId = serialId;
+    public void setSerialNum(String serialNum) {
+        this.serialNum = serialNum;
     }
-    public String getSerialId() {
-        return serialId;
+    public String getSerialNum() {
+        return serialNum;
     }
 
     public void setPlugNo(Integer plugNo) {
@@ -37,18 +37,18 @@ public class YlcCtrlMsg {
         return plugNo;
     }
 
-    public void setLogicId(String logicId) {
-        this.logicId = logicId;
+    public void setLogicNum(String logicNum) {
+        this.logicNum = logicNum;
     }
-    public String getLogicId() {
-        return logicId;
+    public String getLogicNum() {
+        return logicNum;
     }
 
-    public void setPhysId(String physId) {
-        this.physId = physId;
+    public void setPhysicalNum(String physicalNum) {
+        this.physicalNum = physicalNum;
     }
-    public String getPhysId() {
-        return physId;
+    public String getPhysicalNum() {
+        return physicalNum;
     }
 
     public void setAccount(String account) {

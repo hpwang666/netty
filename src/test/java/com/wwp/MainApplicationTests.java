@@ -5,6 +5,10 @@ import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ByteUtil;
 import cn.hutool.core.util.HexUtil;
 import com.wwp.entity.YlcCharger;
+import com.wwp.entity.YlcChargerStatus;
+import com.wwp.entity.YlcOrder;
+import com.wwp.mapper.YlcChargerStatusMapper;
+import com.wwp.mapper.YlcOrderMapper;
 import com.wwp.service.IYlcChargerService;
 import com.wwp.service.impl.YlcChargerServiceImpl;
 import com.wwp.util.SpringBeanUtils;
@@ -18,8 +22,10 @@ import io.netty.util.concurrent.DefaultPromise;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.FutureListener;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.ComponentScan;
 
+import javax.annotation.Resource;
 import java.nio.ByteBuffer;
 import java.util.Base64;
 import java.util.Date;
@@ -34,17 +40,27 @@ import static com.wwp.util.YlcStringUtils.parseByte2HexStr;
 
 
 @ComponentScan(basePackages = {"com.wwp.common.annotation"})
-//@SpringBootTest(classes= MainApplication.class)
+@SpringBootTest(classes= MainApplication.class)
 public class MainApplicationTests {
-   // @Resource
-   // IDevChargerService devChargerService;
+    @Resource
+   YlcOrderMapper ylcOrderMapper;
 
+    @Resource
+    YlcChargerStatusMapper ylcChargerStatusMapper;
 
     public void testBean()
     {
         IYlcChargerService devChargerService =(IYlcChargerService) SpringBeanUtils.getApplicationContext().getBean(YlcChargerServiceImpl.class);
         YlcCharger ylcCharger = devChargerService.getDevChargerBySerialNum("32010203040506");
         System.out.println("charger: " + ylcCharger.getDepartId());
+
+        YlcOrder ylcOrder = new YlcOrder();
+        ylcOrder.setOrderNum(YlcStringUtils.genOrderNum("32010203040506",1));
+        ylcOrder.setSerialNum("32010203040506");
+        ylcOrder.setPhysicalNum("32010203040506");
+        ylcOrder.setPlugNo(1);
+
+        ((YlcOrderMapper)SpringBeanUtils.getApplicationContext().getBean(YlcOrderMapper.class)).add(ylcOrder);
     }
 
     public  void testServer()
@@ -158,7 +174,6 @@ public class MainApplicationTests {
 
     }
 
-    @Test
     public void testHutool()
     {
         byte[] src2={0x50,0x36,0x01,0x00};
@@ -186,6 +201,7 @@ public class MainApplicationTests {
 
 
     }
+    @Test
     public void testTime()
     {
         short[] t ={0x98,0xB7,0x0E,0x11,0x10,0x03,0x14};
@@ -194,17 +210,13 @@ public class MainApplicationTests {
            Date d1 = YlcStringUtils.cp56Time2Date(t);
            System.out.println(d1);
 
+        YlcChargerStatus ylcChargerStatus=new YlcChargerStatus();
+        ylcChargerStatus.setUpdateTime(new Date());
+        ylcChargerStatus.setOrderNum("32010600213533012023020819120001");
+
+        ylcChargerStatusMapper.update(ylcChargerStatus);
 
 
-
-        String d = YlcStringUtils.genBusinessId("32010203040506",1);
-        System.out.println(d);
-        d = YlcStringUtils.genBusinessId("32010203040506",1);
-        System.out.println(d);
-        d = YlcStringUtils.genBusinessId("32010203040506",1);
-        System.out.println(d);
-        d = YlcStringUtils.genBusinessId("32010203040506",1);
-        System.out.println(d);
 
     }
 

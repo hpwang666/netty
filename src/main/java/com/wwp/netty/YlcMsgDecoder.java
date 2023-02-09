@@ -301,7 +301,7 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
         short[] serialId=new short[7];
         for(index=0;index<7;index++)
             serialId[index] =  buffer.readUnsignedByte();
-        msg.setSerialId(YlcStringUtils.bcd2string(serialId));
+        msg.setSerialNum(YlcStringUtils.bcd2string(serialId));
 
         msg.setType((int)buffer.readUnsignedByte());
         msg.setPlugs((int)buffer.readUnsignedByte());
@@ -320,7 +320,7 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
         short[] serialId=new short[7];
         for(index=0;index<7;index++)
             serialId[index] =  buffer.readUnsignedByte();
-        msg.setSerialId(YlcStringUtils.bcd2string(serialId));
+        msg.setSerialNum(YlcStringUtils.bcd2string(serialId));
 
         msg.setPlugNo((int)buffer.readUnsignedByte());
         msg.setPlugStatus((int)buffer.readUnsignedByte());
@@ -341,7 +341,7 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
         short[] model = new short[2];
         for(index=0;index<7;index++)
             serialId[index] =  buffer.readUnsignedByte();
-        msg.setSerialId(YlcStringUtils.bcd2string(serialId));
+        msg.setSerialNum(YlcStringUtils.bcd2string(serialId));
 
         model[0] = buffer.readUnsignedByte();
         model[1] = buffer.readUnsignedByte();
@@ -362,7 +362,7 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
         short[] serialId=new short[7];
         for(index=0;index<7;index++)
             serialId[index] =  buffer.readUnsignedByte();
-        msg.setSerialId(YlcStringUtils.bcd2string(serialId));
+        msg.setSerialNum(YlcStringUtils.bcd2string(serialId));
 
 
         msg.setSuccess(true);
@@ -384,11 +384,11 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
 
         for(index=0;index<16;index++)
             businessId[index] =  buffer.readUnsignedByte();
-        msg.setBusinessId(YlcStringUtils.bcd2string(businessId));
+        msg.setOrderNum(YlcStringUtils.bcd2string(businessId));
 
         for(index=0;index<7;index++)
             serialId[index] =  buffer.readUnsignedByte();
-        msg.setSerialId(YlcStringUtils.bcd2string(serialId));
+        msg.setSerialNum(YlcStringUtils.bcd2string(serialId));
 
 
         msg.setPlugNo((int)buffer.readUnsignedByte()); //枪号
@@ -401,6 +401,7 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
         ylcStatusMsg.setCurrent((int)buffer.readUnsignedByte()+( (int)buffer.readUnsignedByte()<<8&0xff00));;
         ylcStatusMsg.setWireTmp((int)buffer.readUnsignedByte());
 
+        System.out.println("流水号： "+ msg.getOrderNum());
         System.out.println("枪状态 "+msg.getPlugStatus()+"  归位: "+ ylcStatusMsg.getPlugHoming()+"  插枪："+ ylcStatusMsg.getSlotIn());
         System.out.println("电压： "+ ylcStatusMsg.getVoltage());
 
@@ -412,22 +413,22 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
         ylcStatusMsg.setTotalChargeTime((int)buffer.readUnsignedByte()+((int) buffer.readUnsignedByte()<<8&0xff00));
         ylcStatusMsg.setRemainChargeTime((int)buffer.readUnsignedByte()+( (int)buffer.readUnsignedByte()<<8&0xff00));
 
-        long usedKwh=0;
+        Integer usedKwh=0;
         for(index=0;index<4;index++)
             usedKwh |=  buffer.readUnsignedByte()<<(index*8);
-        ylcStatusMsg.setUsedKwh(usedKwh);
+        ylcStatusMsg.setChargeKwh(usedKwh);
 
-        long lossKwh=0;
+        Integer lossKwh=0;
         for(index=0;index<4;index++)
             lossKwh |=  buffer.readUnsignedByte()<<(index*8);
         ylcStatusMsg.setLossKwh(lossKwh);
 
-        long usedMoney=0;
+        Integer usedMoney=0;
         for(index=0;index<4;index++)
             usedMoney |=  buffer.readUnsignedByte()<<(index*8);
-        ylcStatusMsg.setUsedMoney(usedMoney);
+        ylcStatusMsg.setChargeCost(usedMoney);
 
-        System.out.println("充电度数： "+ ylcStatusMsg.getUsedKwh()+" 已充金额："+ ylcStatusMsg.getUsedMoney());
+        System.out.println("已充时间："+ylcStatusMsg.getTotalChargeTime()+"充电度数： "+ ylcStatusMsg.getChargeKwh()+" 已充金额："+ ylcStatusMsg.getChargeCost()+" 剩余时间："+ ylcStatusMsg.getRemainChargeTime());
         buffer.skipBytes(2);
 
         msg.setSuccess(true);
@@ -445,11 +446,11 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
 
         for(index=0;index<16;index++)
             businessId[index] =  buffer.readUnsignedByte();
-        msg.setBusinessId(YlcStringUtils.bcd2string(businessId));
+        msg.setOrderNum(YlcStringUtils.bcd2string(businessId));
 
         for(index=0;index<8;index++)
             serialId[index] =  buffer.readUnsignedByte();
-        msg.setSerialId(YlcStringUtils.bcd2string(serialId));
+        msg.setSerialNum(YlcStringUtils.bcd2string(serialId));
         msg.setPlugNo((int)buffer.readUnsignedByte()); //枪号
 
         buffer.skipBytes(7);
@@ -467,20 +468,20 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
         YlcDevMsg msg = new YlcDevMsg();
         int index=8;
         short[] serialId = new short[7];
-        short[] cardId = new short[8];
+        byte[] cardId = new byte[8];
 
         for(index=0;index<7;index++)
             serialId[index] =  buffer.readUnsignedByte();
-        msg.setSerialId(YlcStringUtils.bcd2string(serialId));
+        msg.setSerialNum(YlcStringUtils.bcd2string(serialId));
         msg.setPlugNo((int)buffer.readUnsignedByte()); //枪号
 
         msg.setReqType((int)buffer.readUnsignedByte()); //启动方式
         buffer.skipBytes(1);
 
         for(index=0;index<8;index++)
-            cardId[index] =  buffer.readUnsignedByte();
-        System.out.println("物理卡号: "+YlcStringUtils.parseByte2HexStr(cardId));
-        msg.setCardId(YlcStringUtils.bcd2string(cardId));
+            cardId[index] =  buffer.readByte();
+        System.out.println("物理卡号: "+ HexUtil.encodeHexStr(cardId));
+        msg.setPhysicalNum(HexUtil.encodeHexStr(cardId));
 
         buffer.skipBytes(33);
 
@@ -498,11 +499,11 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
 
         for(index=0;index<16;index++)
             businessId[index] =  buffer.readUnsignedByte();
-        msg.setBusinessId(YlcStringUtils.bcd2string(businessId));
+        msg.setOrderNum(YlcStringUtils.bcd2string(businessId));
 
         for(index=0;index<7;index++)
             serialId[index] =  buffer.readUnsignedByte();
-        msg.setSerialId(YlcStringUtils.bcd2string(serialId));
+        msg.setSerialNum(YlcStringUtils.bcd2string(serialId));
 
         msg.setPlugNo((int)buffer.readUnsignedByte()); //枪号
         msg.setStartOk((int)buffer.readUnsignedByte());
@@ -524,7 +525,7 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
 
         for(index=0;index<7;index++)
             serialId[index] =  buffer.readUnsignedByte();
-        msg.setSerialId(YlcStringUtils.bcd2string(serialId));
+        msg.setSerialNum(YlcStringUtils.bcd2string(serialId));
 
         for(index=0;index<7;index++)
             timeAck[index] =  buffer.readUnsignedByte();
@@ -542,7 +543,7 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
 
         for(index=0;index<7;index++)
             serialId[index] =  buffer.readUnsignedByte();
-        msg.setSerialId(YlcStringUtils.bcd2string(serialId));
+        msg.setSerialNum(YlcStringUtils.bcd2string(serialId));
 
         msg.setPlugNo((int)buffer.readUnsignedByte()); //枪号
         msg.setStopOk((int)buffer.readUnsignedByte());
@@ -564,11 +565,11 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
 
         for(index=0;index<16;index++)
             businessId[index] =  buffer.readUnsignedByte();
-        msg.setBusinessId(YlcStringUtils.bcd2string(businessId));
+        msg.setOrderNum(YlcStringUtils.bcd2string(businessId));
 
         for(index=0;index<7;index++)
             serialId[index] =  buffer.readUnsignedByte();
-        msg.setSerialId(YlcStringUtils.bcd2string(serialId));
+        msg.setSerialNum(YlcStringUtils.bcd2string(serialId));
 
         msg.setPlugNo((int)buffer.readUnsignedByte()); //枪号
 
@@ -655,7 +656,7 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
 
         for(index=0;index<7;index++)
             serialId[index] =  buffer.readUnsignedByte();
-        msg.setSerialId(YlcStringUtils.bcd2string(serialId));
+        msg.setSerialNum(YlcStringUtils.bcd2string(serialId));
         msg.setSuccess( buffer.readUnsignedByte()==0x01);
         msg.setError(String.format("%d",buffer.readUnsignedByte()));//失败原因
         buffer.release();

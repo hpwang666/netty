@@ -62,7 +62,7 @@ public class YlcMsgEncoder extends MessageToByteEncoder<YlcResult> {  //1
         propertiesBuf.put((byte)0x00);
         propertiesBuf.put((byte)0x04);
 
-        propertiesBuf.put(YlcStringUtils.string2bcd(result.getYlcDevMsg().getSerialId()));
+        propertiesBuf.put(YlcStringUtils.string2bcd(result.getYlcDevMsg().getSerialNum()));
         propertiesBuf.put((byte)(result.getYlcDevMsg().getPlugNo()&0xff));
         propertiesBuf.put((byte)0x00);
 
@@ -94,7 +94,7 @@ public class YlcMsgEncoder extends MessageToByteEncoder<YlcResult> {  //1
         propertiesBuf.put((byte)0x00);
         propertiesBuf.put((byte)0x02);
 
-        propertiesBuf.put(YlcStringUtils.string2bcd(result.getYlcDevMsg().getSerialId()));
+        propertiesBuf.put(YlcStringUtils.string2bcd(result.getYlcDevMsg().getSerialNum()));
         propertiesBuf.put((byte)0x00);
 
         byte[] forCRC =  Arrays.copyOfRange(propertiesBuf.array(),2,14);//15角标是不包含的
@@ -115,7 +115,7 @@ public class YlcMsgEncoder extends MessageToByteEncoder<YlcResult> {  //1
         timeBuf.put((byte)0x02);
         timeBuf.put((byte)0x00);
         timeBuf.put((byte)0x56);
-        timeBuf.put(YlcStringUtils.string2bcd(result.getYlcDevMsg().getSerialId()));
+        timeBuf.put(YlcStringUtils.string2bcd(result.getYlcDevMsg().getSerialNum()));
         timeBuf.put(Date2cp56Time());
         forCRC =  Arrays.copyOfRange(timeBuf.array(),2,20);//15角标是不包含的
         crc = YlcStringUtils.crc(forCRC,18);
@@ -144,7 +144,7 @@ public class YlcMsgEncoder extends MessageToByteEncoder<YlcResult> {  //1
         propertiesBuf.put((byte)0x00);
         propertiesBuf.put((byte)0x06);
 
-        propertiesBuf.put(YlcStringUtils.string2bcd(result.getYlcDevMsg().getSerialId()));
+        propertiesBuf.put(YlcStringUtils.string2bcd(result.getYlcDevMsg().getSerialNum()));
         propertiesBuf.put(YlcStringUtils.string2bcd(result.getYlcDevMsg().getModelCode()));
 
         System.out.println("计费模型编码： "+result.getYlcDevMsg().getModelCode());
@@ -185,23 +185,23 @@ public class YlcMsgEncoder extends MessageToByteEncoder<YlcResult> {  //1
         propertiesBuf.put((byte)0x00);
         propertiesBuf.put((byte)0x0A);
 
-        propertiesBuf.put(YlcStringUtils.string2bcd(result.getYlcDevMsg().getSerialId()));
+        propertiesBuf.put(YlcStringUtils.string2bcd(result.getYlcDevMsg().getSerialNum()));
         //propertiesBuf.put(YlcStringUtils.string2bcd(feeModel.getModelCode()));
         propertiesBuf.put((byte)0x01);
         propertiesBuf.put((byte)0x00);
 
         //截取4个字节，转换成byte 然后逆序
-        propertiesBuf.put(ArrayUtil.reverse(HexUtil.decodeHex(ylcFeeModel.getFee0().substring(0,4))));
-        propertiesBuf.put(ArrayUtil.reverse(HexUtil.decodeHex(ylcFeeModel.getFee0().substring(4))));
+        propertiesBuf.put(ArrayUtil.reverse(HexUtil.decodeHex(ylcFeeModel.getFee0().substring(0,8))));
+        propertiesBuf.put(ArrayUtil.reverse(HexUtil.decodeHex(ylcFeeModel.getFee0().substring(8))));
 
-        propertiesBuf.put(ArrayUtil.reverse(HexUtil.decodeHex(ylcFeeModel.getFee1().substring(0,4))));
-        propertiesBuf.put(ArrayUtil.reverse(HexUtil.decodeHex(ylcFeeModel.getFee1().substring(4))));
+        propertiesBuf.put(ArrayUtil.reverse(HexUtil.decodeHex(ylcFeeModel.getFee1().substring(0,8))));
+        propertiesBuf.put(ArrayUtil.reverse(HexUtil.decodeHex(ylcFeeModel.getFee1().substring(8))));
 
-        propertiesBuf.put(ArrayUtil.reverse(HexUtil.decodeHex(ylcFeeModel.getFee2().substring(0,4))));
-        propertiesBuf.put(ArrayUtil.reverse(HexUtil.decodeHex(ylcFeeModel.getFee2().substring(4))));
+        propertiesBuf.put(ArrayUtil.reverse(HexUtil.decodeHex(ylcFeeModel.getFee2().substring(0,8))));
+        propertiesBuf.put(ArrayUtil.reverse(HexUtil.decodeHex(ylcFeeModel.getFee2().substring(8))));
 
-        propertiesBuf.put(ArrayUtil.reverse(HexUtil.decodeHex(ylcFeeModel.getFee3().substring(0,4))));
-        propertiesBuf.put(ArrayUtil.reverse(HexUtil.decodeHex(ylcFeeModel.getFee3().substring(4))));
+        propertiesBuf.put(ArrayUtil.reverse(HexUtil.decodeHex(ylcFeeModel.getFee3().substring(0,8))));
+        propertiesBuf.put(ArrayUtil.reverse(HexUtil.decodeHex(ylcFeeModel.getFee3().substring(8))));
 
 
         propertiesBuf.put((byte)(ylcFeeModel.getLossRate()&0xff));
@@ -243,13 +243,13 @@ public class YlcMsgEncoder extends MessageToByteEncoder<YlcResult> {  //1
         propertiesBuf.put((byte)0x00);
         propertiesBuf.put((byte)0x32);
 
-        propertiesBuf.put(YlcStringUtils.string2bcd(  YlcStringUtils.genBusinessId(result.getYlcDevMsg().getSerialId(),result.getYlcDevMsg().getPlugNo())  ));
-        propertiesBuf.put(YlcStringUtils.string2bcd(result.getYlcDevMsg().getSerialId()));
+        propertiesBuf.put(YlcStringUtils.string2bcd(  result.getYlcDevMsg().getOrderNum()  ));
+        propertiesBuf.put(YlcStringUtils.string2bcd(result.getYlcDevMsg().getSerialNum()));
         propertiesBuf.put((byte)(result.getYlcDevMsg().getPlugNo()&0xff));
 
 
         propertiesBuf.put(YlcStringUtils.string2bcd("0000001122334455"));//逻辑卡号
-        propertiesBuf.put(YlcStringUtils.parseHexStr2Byte("0f000000"));//一元余额
+        propertiesBuf.put(YlcStringUtils.parseHexStr2Byte("64000000"));//一元余额
 
         propertiesBuf.put((byte)0x01);//鉴权成功0x01
         propertiesBuf.put((byte)0x00);//错误码
@@ -280,7 +280,7 @@ public class YlcMsgEncoder extends MessageToByteEncoder<YlcResult> {  //1
         propertiesBuf.put((byte)0x00);
         propertiesBuf.put((byte)0x40);
 
-        propertiesBuf.put(YlcStringUtils.string2bcd(result.getYlcDevMsg().getBusinessId()));
+        propertiesBuf.put(YlcStringUtils.string2bcd(result.getYlcDevMsg().getOrderNum()));
 
         propertiesBuf.put((byte)0x00);//0x01验证总是不一致
 
@@ -303,7 +303,7 @@ public class YlcMsgEncoder extends MessageToByteEncoder<YlcResult> {  //1
 
 
         System.out.println(" ");
-        System.out.println("交易流水号："+msg.getBusinessId());
+        System.out.println("交易流水号："+msg.getOrderNum());
 
         System.out.println("总电量："+ msg.getYlcRecordMsg().getRecordTotalKwh());
 

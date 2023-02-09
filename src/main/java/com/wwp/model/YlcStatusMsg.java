@@ -25,11 +25,11 @@ public class YlcStatusMsg {
 
     private Integer remainChargeTime;
 
-    private long usedKwh;
+    private Integer chargeKwh;
 
-    private long lossKwh;
+    private Integer lossKwh;
 
-    private long usedMoney;
+    private Integer chargeCost;
 
     private Integer failure;
 
@@ -106,26 +106,26 @@ public class YlcStatusMsg {
         return remainChargeTime;
     }
 
-    public void setUsedKwh(long usedKwh) {
-        this.usedKwh = usedKwh;
+    public void setChargeKwh(Integer chargeKwh) {
+        this.chargeKwh = chargeKwh;
     }
-    public long getUsedKwh() {
-        return usedKwh;
+    public Integer getChargeKwh() {
+        return chargeKwh;
     }
 
-    public void setLossKwh(long lossKwh) {
+    public void setLossKwh(Integer lossKwh) {
         this.lossKwh = lossKwh;
     }
-    public long getLossKwh() {
+    public Integer getLossKwh() {
         return lossKwh;
     }
 
-    public void setUsedMoney(long usedMoney) {
-        this.usedMoney = usedMoney;
+    public void setChargeCost(Integer chargeCost) {
+        this.chargeCost = chargeCost;
     }
 
-    public long getUsedMoney() {
-        return usedMoney;
+    public Integer getChargeCost() {
+        return chargeCost;
     }
 
     public void setFailure(Integer failure) {

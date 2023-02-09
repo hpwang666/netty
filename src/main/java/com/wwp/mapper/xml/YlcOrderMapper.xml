@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wwp.mapper.YlcOrderMapper">
+
+
+    <insert id="add" parameterType="com.wwp.entity.YlcOrder">
+        INSERT INTO ylc_order set id=#{id} ,order_num=#{orderNum},serial_num=#{serialNum},plug_no=#{plugNo},`start_amount`=#{startAmount},
+                                    total_kwh=#{totalKwh},total_cost=#{totalCost},order_time=#{orderTime},physical_num=#{physicalNum},
+                                    stop_type=#{stopType},settle_flag=#{settleFlag}
+    </insert>
+
+    <update id="update" parameterType="com.wwp.entity.YlcOrder">
+        update ylc_order
+        <trim prefix="set" suffixOverrides=",">
+            <if test="totalKwh!=null">`total_kwh`=#{totalKwh,jdbcType=INT},</if>
+            <if test="totalCost!=null">total_cost=#{totalCost,jdbcType=INT},</if>
+            <if test="orderTime!=null">order_time=#{orderTime,jdbcType=DATETIME},</if>
+            <if test="stopType!=null">stop_type=#{stopType,jdbcType=TINYINT},</if>
+            <if test="settleFlag!=null">settle_flag=#{settleFlag,jdbcType=TINYINT},</if>
+        </trim>
+        WHERE id =#{id,jdbcType=VARCHAR}
+    </update>
+
+</mapper>

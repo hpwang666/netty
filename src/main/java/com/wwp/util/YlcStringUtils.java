@@ -279,7 +279,7 @@ public class YlcStringUtils {
             };
 
 
-    static public String genBusinessId(String serialId,Integer plugNo)
+    static public String genOrderNum(String serialId, Integer plugNo)
     {
         StringBuffer sb = new StringBuffer ();
         sb.append(serialId);

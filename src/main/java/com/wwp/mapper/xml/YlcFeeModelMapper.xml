@@ -6,7 +6,7 @@
 
 
     <select id="getFeeModelByCode" resultType="com.wwp.entity.YlcFeeModel">
-		select * from  fee_model where model_code = #{modelCode}
+		select * from  ylc_fee_model where model_code = #{modelCode}
 	</select>
 
 

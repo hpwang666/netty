@@ -15,7 +15,6 @@ import io.netty.util.concurrent.DefaultPromise;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
-import java.util.Base64;
 
 //主动下发的数据进行编码
 public class YlcCtrlEncoder extends MessageToByteEncoder<YlcCtrlMsg> {  //1
@@ -30,8 +29,8 @@ public class YlcCtrlEncoder extends MessageToByteEncoder<YlcCtrlMsg> {  //1
     public void encode(ChannelHandlerContext ctx, YlcCtrlMsg ctrl, ByteBuf out)
             throws IllegalArgumentException {
         System.out.println("ctrl encoder");
-        if(YlcDeviceMap.exist(ctrl.getSerialId())){
-            Session s = YlcDeviceMap.getDEVICES().get(ctrl.getSerialId());
+        if(YlcDeviceMap.exist(ctrl.getSerialNum())){
+            Session s = YlcDeviceMap.getDEVICES().get(ctrl.getSerialNum());
             s.setAckFuture(new DefaultPromise<YlcResult>(eventExecutorGroup.next()));
             System.out.println("配置下发的future");
         }
@@ -74,16 +73,16 @@ public class YlcCtrlEncoder extends MessageToByteEncoder<YlcCtrlMsg> {  //1
         propertiesBuf.put((byte)0x34);
 
 
-        propertiesBuf.put(YlcStringUtils.string2bcd(  YlcStringUtils.genBusinessId(ctrl.getSerialId(),ctrl.getPlugNo())  ));
-        propertiesBuf.put(YlcStringUtils.string2bcd(ctrl.getSerialId()));
+        propertiesBuf.put(YlcStringUtils.string2bcd(  YlcStringUtils.genOrderNum(ctrl.getSerialNum(),ctrl.getPlugNo())  ));
+        propertiesBuf.put(YlcStringUtils.string2bcd(ctrl.getSerialNum()));
         propertiesBuf.put((byte)(ctrl.getPlugNo()&0xff));
-        propertiesBuf.put(YlcStringUtils.string2bcd(ctrl.getLogicId()));
+        propertiesBuf.put(YlcStringUtils.string2bcd(ctrl.getLogicNum()));
         //propertiesBuf.put(Base64.getDecoder().decode(ctrl.getPhysId()));
-        propertiesBuf.put(HexUtil.decodeHex(ctrl.getPhysId()));
+        propertiesBuf.put(HexUtil.decodeHex(ctrl.getPhysicalNum()));
 
         //propertiesBuf.put(Base64.getDecoder().decode(ctrl.getAccount()));
         //转换成小端字节序
-        propertiesBuf.put(ArrayUtil.reverse(HexUtil.decodeHex(ctrl.getPhysId())));
+        propertiesBuf.put(ArrayUtil.reverse(HexUtil.decodeHex(ctrl.getAccount())));
 
         byte[] forCRC =  Arrays.copyOfRange(propertiesBuf.array(),2,baseLen+2);//15角标是不包含的
         int crc = YlcStringUtils.crc(forCRC,baseLen);
@@ -115,7 +114,7 @@ public class YlcCtrlEncoder extends MessageToByteEncoder<YlcCtrlMsg> {  //1
         propertiesBuf.put((byte)0x36);
 
 
-        propertiesBuf.put(YlcStringUtils.string2bcd(ctrl.getSerialId()));
+        propertiesBuf.put(YlcStringUtils.string2bcd(ctrl.getSerialNum()));
         propertiesBuf.put((byte)(ctrl.getPlugNo()&0xff));
 
 
@@ -147,10 +146,10 @@ public class YlcCtrlEncoder extends MessageToByteEncoder<YlcCtrlMsg> {  //1
         propertiesBuf.put((byte)0x44);
 
 
-        propertiesBuf.put(YlcStringUtils.string2bcd(ctrl.getSerialId()));
+        propertiesBuf.put(YlcStringUtils.string2bcd(ctrl.getSerialNum()));
         propertiesBuf.put((byte)(0x01));//卡的个数
-        propertiesBuf.put(YlcStringUtils.string2bcd(ctrl.getLogicId()));
-        propertiesBuf.put(HexUtil.decodeHex(ctrl.getPhysId()));
+        propertiesBuf.put(YlcStringUtils.string2bcd(ctrl.getLogicNum()));
+        propertiesBuf.put(HexUtil.decodeHex(ctrl.getPhysicalNum()));
         byte[] forCRC =  Arrays.copyOfRange(propertiesBuf.array(),2,baseLen+2);//15角标是不包含的
         int crc = YlcStringUtils.crc(forCRC,baseLen);
         propertiesBuf.put((byte)((crc>>8)&0xff));

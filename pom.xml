@@ -71,7 +71,7 @@
             <groupId>cn.hutool</groupId>
             <artifactId>hutool-core</artifactId>
             <version>5.8.11</version>
-            <systemPath>${basedir}/src/main/resources/lib/hutool-core-5.8.11.jar</systemPath>
+            <systemPath>${basedir}/src/main/resources/lib/hutool-all-5.8.11.jar</systemPath>
             <!--systemPath>${basedir}/src/main/resources/lib/hutool-all-5.8.11.jar</systemPath-->
         </dependency>
     </dependencies>

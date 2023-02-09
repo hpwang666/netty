@@ -8,9 +8,6 @@ import com.wwp.model.YlcResult;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.timeout.IdleStateEvent;
-import io.netty.util.AttributeKey;
-
-import java.nio.channels.SeekableByteChannel;
 
 
 /**
@@ -63,17 +60,17 @@ public class ServerChannelHandlerAdapter extends ChannelInboundHandlerAdapter {
             if(result.getSuccess()){
                 //System.out.println(" id: " + ylcDevMsg.getSerialId());
 
-                if(!YlcDeviceMap.exist(ylcDevMsg.getSerialId())){
+                if(!YlcDeviceMap.exist(ylcDevMsg.getSerialNum())){
                     System.out.println("添加session" + ctx.channel().remoteAddress()+" "+Thread.currentThread());
-                    YlcDeviceMap.put(ylcDevMsg.getSerialId(),new Session(ctx.channel()));
+                    YlcDeviceMap.put(ylcDevMsg.getSerialNum(),new Session(ctx.channel()));
                     //AttributeKey<Session> sessionIdKey = AttributeKey.valueOf(ylcDevMsg.getSerialId());
                     //ctx.channel().attr(sessionIdKey).set(new Session(ctx.channel()));
                 }
                 else{
-                    if (!YlcDeviceMap.get(ylcDevMsg.getSerialId()).getChannel().remoteAddress().equals(ctx.channel().remoteAddress())){
+                    if (!YlcDeviceMap.get(ylcDevMsg.getSerialNum()).getChannel().remoteAddress().equals(ctx.channel().remoteAddress())){
                         System.out.println("更新session" + ctx.channel().remoteAddress()+" "+Thread.currentThread());
-                        YlcDeviceMap.put(ylcDevMsg.getSerialId()+"_",YlcDeviceMap.get(ylcDevMsg.getSerialId()));
-                        YlcDeviceMap.put(ylcDevMsg.getSerialId(),new Session(ctx.channel()));
+                        YlcDeviceMap.put(ylcDevMsg.getSerialNum()+"_",YlcDeviceMap.get(ylcDevMsg.getSerialNum()));
+                        YlcDeviceMap.put(ylcDevMsg.getSerialNum(),new Session(ctx.channel()));
                     }
                 }
                 ctx.fireChannelRead(msg);

@@ -33,13 +33,13 @@ public class YlcCharger {
 
         YlcCtrlMsg ctrlMsg = new YlcCtrlMsg();
         ctrlMsg.setMsgType(REMOTE_ON);
-        ctrlMsg.setSerialId("32010600213533");
+        ctrlMsg.setSerialNum("32010600213533");
         ctrlMsg.setPlugNo(1);
-        ctrlMsg.setLogicId("0000002022009090");//0000001000000573
+        ctrlMsg.setLogicNum("0000002022009090");//0000001000000573
         //ctrlMsg.setPhysId("AAAAANFLClQ=");//00000000D14B0A54
         //ctrlMsg.setAccount("oIYBAA==");//A0860100   1000.00元
 
-        ctrlMsg.setPhysId("00000000D14B0A54");//00000000D14B0A54
+        ctrlMsg.setPhysicalNum("00000000D14B0A54");//00000000D14B0A54
         ctrlMsg.setAccount("0001860A");//A0860100   1000.00元
 
 
@@ -54,10 +54,10 @@ public class YlcCharger {
     public String remoteAddPhys() {
         YlcCtrlMsg ctrlMsg = new YlcCtrlMsg();
         ctrlMsg.setMsgType(CARD_UPDATE);
-        ctrlMsg.setSerialId("32010600213533");
+        ctrlMsg.setSerialNum("32010600213533");
         ctrlMsg.setPlugNo(1);
-        ctrlMsg.setLogicId("0000002022009092");
-        ctrlMsg.setPhysId("AAAAANFLClQ=");//00000000D1B2C3D4  AAAAANGyw9Q=
+        ctrlMsg.setLogicNum("0000002022009092");
+        ctrlMsg.setPhysicalNum("AAAAANFLClQ=");//00000000D1B2C3D4  AAAAANGyw9Q=
         ctrlMsg.setAccount("oIYBAA==");//A0860100   1000.00元
 
         YlcResult result =  devCtrlService.remoteAddPhysCard(ctrlMsg);
@@ -74,7 +74,7 @@ public class YlcCharger {
 
         YlcCtrlMsg ctrlMsg = new YlcCtrlMsg();
         ctrlMsg.setMsgType(REMOTE_OFF);
-        ctrlMsg.setSerialId("32010600213533");
+        ctrlMsg.setSerialNum("32010600213533");
         ctrlMsg.setPlugNo(1);
 
         YlcResult result =  devCtrlService.remoteDevOff(ctrlMsg);

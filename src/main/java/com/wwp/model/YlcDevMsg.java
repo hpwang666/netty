@@ -18,10 +18,10 @@ public class YlcDevMsg {
     private String modelCode;
 
     //交易流水号
-    private String businessId;
+    private String orderNum;
 
     //序列号 7个字节
-    private String serialId;
+    private String serialNum;
 
     //充电桩类型
     private Integer type;
@@ -51,7 +51,7 @@ public class YlcDevMsg {
     private Integer ctrlError;
 
     //卡号
-    private String cardId;
+    private String physicalNum;
 
     //通信协议版本
     private String ver;
@@ -132,19 +132,19 @@ public class YlcDevMsg {
         return error;
     }
 
-    public void setBusinessId(String businessId) {
-        this.businessId = businessId;
+    public void setOrderNum(String orderNum) {
+        this.orderNum = orderNum;
     }
 
-    public String getBusinessId() {
-        return this.businessId;
+    public String getOrderNum() {
+        return this.orderNum;
     }
 
-    public void setSerialId(String serialId) {
-        this.serialId = serialId;
+    public void setSerialNum(String serialNum) {
+        this.serialNum = serialNum;
     }
-    public String getSerialId() {
-        return serialId;
+    public String getSerialNum() {
+        return serialNum;
     }
 
     public void setType(Integer type) {
@@ -211,11 +211,11 @@ public class YlcDevMsg {
         return ctrlError;
     }
 
-    public void setCardId(String cardId) {
-        this.cardId = cardId;
+    public void setPhysicalNum(String physicalNum) {
+        this.physicalNum = physicalNum;
     }
-    public String getCardId() {
-        return cardId;
+    public String getPhysicalNum() {
+        return physicalNum;
     }
 
     public void setVer(String ver) {

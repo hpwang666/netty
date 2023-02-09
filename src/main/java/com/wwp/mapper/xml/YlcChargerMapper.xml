@@ -13,7 +13,7 @@
 	</select>
 
     <update id="updateTime">
-        update dev_charger
+        update ylc_charger
         set   update_time=#{updateTime}
         where serial_num = #{serialNum}
     </update>

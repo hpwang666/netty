@@ -25,13 +25,15 @@ public class YlcChargerStatus  implements Serializable {
 
     private Integer chargeMin;
 
-    private Integer chargerKwh;
+    private Integer chargeKwh;
 
     private Integer lossKwh;
 
-    private Integer chargerCost;
+    private Integer chargeCost;
 
-    private Date updateTime;
+    //private Integer settleFlag;
+
+    private java.util.Date updateTime;
 
     public void setId(String id) {
         this.id = id;
@@ -82,11 +84,11 @@ public class YlcChargerStatus  implements Serializable {
         return chargeMin;
     }
 
-    public void setChargerKwh(Integer chargerKwh) {
-        this.chargerKwh = chargerKwh;
+    public void setChargeKwh(Integer chargeKwh) {
+        this.chargeKwh = chargeKwh;
     }
-    public Integer getChargerKwh() {
-        return chargerKwh;
+    public Integer getChargeKwh() {
+        return chargeKwh;
     }
 
     public void setLossKwh(Integer lossKwh) {
@@ -96,11 +98,11 @@ public class YlcChargerStatus  implements Serializable {
         return lossKwh;
     }
 
-    public void setChargerCost(Integer chargerCost) {
-        this.chargerCost = chargerCost;
+    public void setChargeCost(Integer chargeCost) {
+        this.chargeCost = chargeCost;
     }
-    public Integer getChargerCost() {
-        return chargerCost;
+    public Integer getChargeCost() {
+        return chargeCost;
     }
 
     public void setUpdateTime(Date updateTime) {

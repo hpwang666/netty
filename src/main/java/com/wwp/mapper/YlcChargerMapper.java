@@ -8,7 +8,7 @@ import java.util.Date;
 
 @Mapper
 public interface YlcChargerMapper {
-    public void add(YlcCharger ylcCharger);
-    public YlcCharger getDevCharger(@Param("serialNum") String serialNum);
-    public void updateTime(@Param("serialNum")String serialNum,@Param("updateTime") Date updateTime);
+     void add(YlcCharger ylcCharger);
+     YlcCharger getDevCharger(@Param("serialNum") String serialNum);
+     void updateTime(@Param("serialNum")String serialNum,@Param("updateTime") Date updateTime);
 }

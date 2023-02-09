@@ -25,7 +25,7 @@ public class YlcCtrlServiceImpl implements IYlcCtrlService {
     public YlcResult remoteDevOn(YlcCtrlMsg ctrlMsg)
     {
 
-        Session s =(Session) YlcDeviceMap.getDEVICES().get(ctrlMsg.getSerialId());
+        Session s =(Session) YlcDeviceMap.getDEVICES().get(ctrlMsg.getSerialNum());
         if(s == null) return YlcResult.error("设备不在线");
 
         Future f = s.getChannel().writeAndFlush(ctrlMsg);
@@ -54,7 +54,7 @@ public class YlcCtrlServiceImpl implements IYlcCtrlService {
     public YlcResult remoteDevOff(YlcCtrlMsg ctrlMsg)
     {
 
-        Session s =(Session) YlcDeviceMap.getDEVICES().get(ctrlMsg.getSerialId());
+        Session s =(Session) YlcDeviceMap.getDEVICES().get(ctrlMsg.getSerialNum());
         if(s == null) return YlcResult.error("设备不在线");
 
         Future f = s.getChannel().writeAndFlush(ctrlMsg);
@@ -82,7 +82,7 @@ public class YlcCtrlServiceImpl implements IYlcCtrlService {
     @Override
     public YlcResult remoteAddPhysCard(YlcCtrlMsg ctrlMsg)
     {
-        Session s =(Session) YlcDeviceMap.getDEVICES().get(ctrlMsg.getSerialId());
+        Session s =(Session) YlcDeviceMap.getDEVICES().get(ctrlMsg.getSerialNum());
         if(s == null) return YlcResult.error("设备不在线");
 
         Future f = s.getChannel().writeAndFlush(ctrlMsg);

@@ -9,12 +9,14 @@ public class YlcDevMsg {
 
     private YlcMsgHeader header;
     private YlcRecordMsg ylcRecordMsg;
+    //充电枪状态
+    private YlcStatusMsg ylcStatusMsg;
 
     private Object payload;
     private String error;
     private boolean success;
 
-    //计费模型base64编码
+    //计费模型编码
     private String modelCode;
 
     //交易流水号
@@ -35,8 +37,7 @@ public class YlcDevMsg {
     //0x00：离线   0x01：故障  0x02：空闲  0x03：充电
     private Integer plugStatus;
 
-    //充电枪状态
-    private YlcStatusMsg ylcStatusMsg;
+
 
     //启动方式
     private Integer reqType;

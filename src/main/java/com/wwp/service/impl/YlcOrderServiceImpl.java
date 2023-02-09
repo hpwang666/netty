@@ -18,4 +18,10 @@ public class YlcOrderServiceImpl implements IYlcOrderService {
     {
         ylcOrderMapper.add(ylcOrder);
     }
+
+    @Override
+    public void update(YlcOrder ylcOrder)
+    {
+        ylcOrderMapper.update(ylcOrder);
+    }
 }

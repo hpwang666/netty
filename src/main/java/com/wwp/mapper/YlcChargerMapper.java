@@ -11,4 +11,7 @@ public interface YlcChargerMapper {
      void add(YlcCharger ylcCharger);
      YlcCharger getDevCharger(@Param("serialNum") String serialNum);
      void updateTime(@Param("serialNum")String serialNum,@Param("updateTime") Date updateTime);
+
+     //更新充电桩的状态  以及是否插枪
+     void updateStatus(@Param("serialNum")String serialNum,@Param("updateTime") Integer updateTime);
 }

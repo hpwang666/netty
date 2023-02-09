@@ -16,7 +16,9 @@ import com.wwp.model.YlcMsgType;
 import com.wwp.model.YlcResult;
 import com.wwp.service.IYlcChargerService;
 import com.wwp.service.IYlcFeeModelService;
+import com.wwp.service.IYlcOrderService;
 import com.wwp.service.impl.YlcChargerServiceImpl;
+import com.wwp.service.impl.YlcOrderServiceImpl;
 import com.wwp.util.SpringBeanUtils;
 import com.wwp.util.YlcStringUtils;
 import io.netty.channel.ChannelHandlerContext;
@@ -98,6 +100,9 @@ public class BusinessHandler extends ChannelInboundHandlerAdapter {
                        // msg.setHeader(header);
 
                     }
+                    else{
+                        //TODO 记录错误
+                    }
                     //ctx.channel().writeAndFlush(Unpooled.copiedBuffer("12345 ", CharsetUtil.UTF_8));
                 }
             }
@@ -122,54 +127,14 @@ public class BusinessHandler extends ChannelInboundHandlerAdapter {
                 if(ylcCharger !=null){
                     //System.out.println("charger: " + devCharger.getDepartId());
                     ylcChargerService.updateTime(ylcCharger.getSerialNum(),new Date());
-
-                    if(inMsg.getHeader().getMsgType() == GET_MODEL){
-                        YlcFeeModel ylcFeeModel = ((YlcFeeModelMapper)SpringBeanUtils.getApplicationContext().getBean(YlcFeeModelMapper.class)).getFeeModelByCode("1324");
-                        if(ylcFeeModel != null){
-                            System.out.println("fee0: "+ ylcFeeModel.getFee0());
-                            result.setResult(ylcFeeModel);
-                            //businessFuture.setSuccess(new YlcResult<FeeModel>(true,feeModel,"ok"));
-                        }
-                        result.setMessage("数据库操作 ok");
+                    try{
+                        doBusiness(result);
                     }
-
-                    if(inMsg.getHeader().getMsgType() == UP_CHARGE_REQ){
-                        YlcOrder ylcOrder = new YlcOrder();
-                        String orderNum = YlcStringUtils.genOrderNum(result.getYlcDevMsg().getSerialNum(),result.getYlcDevMsg().getPlugNo());
-                        ylcOrder.setOrderNum(orderNum);
-                        ylcOrder.setSerialNum(result.getYlcDevMsg().getSerialNum());
-                        ylcOrder.setPlugNo(result.getYlcDevMsg().getPlugNo());
-                        ylcOrder.setPhysicalNum(result.getYlcDevMsg().getPhysicalNum());
-                        ((YlcOrderMapper)SpringBeanUtils.getApplicationContext().getBean(YlcOrderMapper.class)).add(ylcOrder);
-
-                        result.getYlcDevMsg().setOrderNum(orderNum);
-                        //创建状态记录
-                        YlcChargerStatus ylcChargerStatus = new YlcChargerStatus();
-                        ylcChargerStatus.setOrderNum(orderNum);
-                        ylcChargerStatus.setSerialNum(result.getYlcDevMsg().getSerialNum());
-                        ylcChargerStatus.setPlugNo(result.getYlcDevMsg().getPlugNo());
-
-                        ((YlcChargerStatusMapper)SpringBeanUtils.getApplicationContext().getBean(YlcChargerStatusMapper.class)).add(ylcChargerStatus);
-                        result.setMessage("生成订单 ok");
+                    catch (Exception e) {
+                       result.setSuccess(false);
+                       result.setMessage(e.getMessage());
                     }
-
-                    if(inMsg.getHeader().getMsgType() ==UP_RT_STATUS)
-                    {
-                        YlcChargerStatus ylcChargerStatus = new YlcChargerStatus();
-                        ylcChargerStatus.setOrderNum(inMsg.getOrderNum());
-                        //ylcChargerStatus.setSerialNum(inMsg.getSerialNum());
-                        //ylcChargerStatus.setPlugNo(result.getYlcDevMsg().getPlugNo());
-                        ylcChargerStatus.setChargeCost(inMsg.getYlcStatusMsg().getChargeCost());
-                        ylcChargerStatus.setChargeKwh(inMsg.getYlcStatusMsg().getChargeKwh());
-                        ylcChargerStatus.setChargeMin(inMsg.getYlcStatusMsg().getTotalChargeTime());
-
-                        ylcChargerStatus.setUpdateTime(new Date());
-
-                        ((YlcChargerStatusMapper)SpringBeanUtils.getApplicationContext().getBean(YlcChargerStatusMapper.class)).update(ylcChargerStatus);
-                    }
-
                     result.setSuccess(true);
-
                 }
                 else{
                     result.setSuccess(false);
@@ -179,9 +144,93 @@ public class BusinessHandler extends ChannelInboundHandlerAdapter {
 
             }});
 
-
-
        // super.channelRead(ctx,msg);
     }
 
+    private void doBusiness( YlcResult result) throws Exception
+    {
+        try{
+            switch (result.getYlcDevMsg().getHeader().getMsgType()){
+                case GET_MODEL:
+                    getModelHandle(result);break;
+                case UP_CHARGE_REQ:
+                    upChargeReqHandle(result);break;
+                case UP_RT_STATUS:
+                    upStatusHandle(result);break;
+                case RECORD:
+                    recordHandle(result);break;
+                default:break;
+            }
+        }
+        catch (Exception e){
+            throw e;
+        }
+
+    }
+
+    private void getModelHandle(YlcResult result)
+    {
+
+        YlcFeeModel ylcFeeModel = ((YlcFeeModelMapper)SpringBeanUtils.getApplicationContext().getBean(YlcFeeModelMapper.class)).getFeeModelByCode("1324");
+        if(ylcFeeModel != null){
+            System.out.println("fee0: "+ ylcFeeModel.getFee0());
+            result.setResult(ylcFeeModel);
+            //businessFuture.setSuccess(new YlcResult<FeeModel>(true,feeModel,"ok"));
+        }
+        result.setMessage("获取数据编码 ok");
+    }
+
+
+
+    private void upChargeReqHandle(YlcResult result)
+    {
+        YlcOrder ylcOrder = new YlcOrder();
+        String orderNum = YlcStringUtils.genOrderNum(result.getYlcDevMsg().getSerialNum(),result.getYlcDevMsg().getPlugNo());
+        ylcOrder.setOrderNum(orderNum);
+        ylcOrder.setSerialNum(result.getYlcDevMsg().getSerialNum());
+        ylcOrder.setPlugNo(result.getYlcDevMsg().getPlugNo());
+        ylcOrder.setPhysicalNum(result.getYlcDevMsg().getPhysicalNum());
+        ((YlcOrderMapper)SpringBeanUtils.getApplicationContext().getBean(YlcOrderMapper.class)).add(ylcOrder);
+
+        result.getYlcDevMsg().setOrderNum(orderNum);
+        //创建状态记录
+        YlcChargerStatus ylcChargerStatus = new YlcChargerStatus();
+        ylcChargerStatus.setOrderNum(orderNum);
+        ylcChargerStatus.setSerialNum(result.getYlcDevMsg().getSerialNum());
+        ylcChargerStatus.setPlugNo(result.getYlcDevMsg().getPlugNo());
+
+        ((YlcChargerStatusMapper)SpringBeanUtils.getApplicationContext().getBean(YlcChargerStatusMapper.class)).add(ylcChargerStatus);
+        result.setMessage("创建卡充电记录 ok");
+    }
+
+    private void upStatusHandle(YlcResult result)
+    {
+        YlcChargerStatus ylcChargerStatus = new YlcChargerStatus();
+        ylcChargerStatus.setOrderNum(result.getYlcDevMsg().getOrderNum());
+        //ylcChargerStatus.setSerialNum(inMsg.getSerialNum());
+        //ylcChargerStatus.setPlugNo(result.getYlcDevMsg().getPlugNo());
+        ylcChargerStatus.setChargeCost(result.getYlcDevMsg().getYlcStatusMsg().getChargeCost());
+        ylcChargerStatus.setChargeKwh(result.getYlcDevMsg().getYlcStatusMsg().getChargeKwh());
+        ylcChargerStatus.setChargeMin(result.getYlcDevMsg().getYlcStatusMsg().getTotalChargeTime());
+
+        ylcChargerStatus.setUpdateTime(new Date());
+
+        ((YlcChargerStatusMapper)SpringBeanUtils.getApplicationContext().getBean(YlcChargerStatusMapper.class)).update(ylcChargerStatus);
+        result.setMessage("更新实时状态 ok");
+    }
+
+    private void recordHandle(YlcResult result)
+    {
+        YlcOrder ylcOrder = new YlcOrder();
+        ylcOrder.setOrderNum(result.getYlcDevMsg().getOrderNum());
+        ylcOrder.setSettleFlag(1);
+        ylcOrder.setTotalCost(result.getYlcDevMsg().getYlcRecordMsg().getTotalCost());
+        ylcOrder.setTotalKwh(result.getYlcDevMsg().getYlcRecordMsg().getRecordTotalKwh());
+        ylcOrder.setStopType(result.getYlcDevMsg().getYlcRecordMsg().getStopType());
+
+        ylcOrder.setOrderTime(result.getYlcDevMsg().getYlcRecordMsg().getBusinessDate());
+
+        ((YlcOrderServiceImpl)SpringBeanUtils.getApplicationContext().getBean(IYlcOrderService.class)).update(ylcOrder);
+        result.setMessage("账单结算更新 ok");
+    }
 }

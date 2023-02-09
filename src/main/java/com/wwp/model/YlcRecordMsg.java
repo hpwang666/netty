@@ -44,9 +44,8 @@ public class YlcRecordMsg {
 
     private Date businessDate;//交易日期时间
 
-    private Integer overType; //停止原因
+    private Integer stopType; //停止原因
 
-    private String physId; //物理卡号
 
     public YlcRecordMsg()
     {
@@ -118,12 +117,6 @@ public class YlcRecordMsg {
         return totalCost;
     }
 
-    public void setPhysId(String physId) {
-        this.physId = physId;
-    }
-    public String getPhysId() {
-        return physId;
-    }
 
     public void setTradeType(Integer tradeType) {
         this.tradeType = tradeType;
@@ -139,11 +132,11 @@ public class YlcRecordMsg {
         return businessDate;
     }
 
-    public void setOverType(Integer overType) {
-        this.overType = overType;
+    public void setStopType(Integer stopType) {
+        this.stopType = stopType;
     }
 
-    public Integer getOverType() {
-        return overType;
+    public Integer getStopType() {
+        return stopType;
     }
 }

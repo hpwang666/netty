@@ -634,12 +634,12 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
             cp56Time[index] =  buffer.readUnsignedByte();
         record.setBusinessDate(YlcStringUtils.cp56Time2Date(cp56Time));
 
-        record.setOverType((int)buffer.readUnsignedByte());
+        record.setStopType((int)buffer.readUnsignedByte());
 
         byte[] physId = new byte[8];
         for(index=0;index<8;index++)
             physId[index] =  buffer.readByte();
-        record.setPhysId(HexUtil.encodeHexStr(physId));
+        msg.setPhysicalNum(HexUtil.encodeHexStr(physId));
 
         msg.setYlcRecordMsg(record);
         msg.setSuccess(true);

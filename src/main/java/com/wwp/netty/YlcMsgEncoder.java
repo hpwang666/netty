@@ -311,7 +311,7 @@ public class YlcMsgEncoder extends MessageToByteEncoder<YlcResult> {  //1
 
         System.out.println("花费金额："+ msg.getYlcRecordMsg().getTotalCost());
 
-        System.out.println("停止原因："+ msg.getYlcRecordMsg().getOverType());
+        System.out.println("停止原因："+ msg.getYlcRecordMsg().getStopType());
 
     }
 }

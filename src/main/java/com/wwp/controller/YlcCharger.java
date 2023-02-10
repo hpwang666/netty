@@ -1,12 +1,12 @@
 package com.wwp.controller;
 
 import com.wwp.devices.YlcDeviceMap;
+import com.wwp.entity.YlcUserLogical;
 import com.wwp.model.YlcCtrlMsg;
 import com.wwp.model.YlcResult;
 import com.wwp.service.IYlcCtrlService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.wwp.service.IYlcUserLogicService;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -19,6 +19,8 @@ public class YlcCharger {
     @Resource
     IYlcCtrlService devCtrlService;
 
+    @Resource
+    IYlcUserLogicService ylcUserLogicService;
 
     @GetMapping("/channelList")
     public List<String> queryChannelList() {
@@ -27,20 +29,25 @@ public class YlcCharger {
 
     }
 
-    @GetMapping("/remoteOn")
-    public String queryChargerList() {
+    @RequestMapping(value="/remoteOn",method= RequestMethod.GET)
+    public String queryChargerList(@RequestParam String chargerId) {
 
 
         YlcCtrlMsg ctrlMsg = new YlcCtrlMsg();
         ctrlMsg.setMsgType(REMOTE_ON);
-        ctrlMsg.setSerialNum("32010600213533");
+        ctrlMsg.setSerialNum(chargerId);
         ctrlMsg.setPlugNo(1);
-        ctrlMsg.setLogicNum("0000002022009090");//0000001000000573
-        //ctrlMsg.setPhysId("AAAAANFLClQ=");//00000000D14B0A54
-        //ctrlMsg.setAccount("oIYBAA==");//A0860100   1000.00元
 
-        ctrlMsg.setPhysicalNum("00000000D14B0A54");//00000000D14B0A54
-        ctrlMsg.setAccount("0001860A");//A0860100   1000.00元
+        YlcUserLogical ylcUserLogical = ylcUserLogicService.queryByUserId("1111");
+        ctrlMsg.setLogicNum(ylcUserLogical.getLogicalNum());//0000001000000573
+        ctrlMsg.setPhysicalNum(ylcUserLogical.getLogicalNum());//00000000D14B0A54
+
+        //金额太大了 就下发1000.00元
+        if(ylcUserLogical.getAmount().toString().length()>6)
+            ctrlMsg.setAccount("100000");//A0860100   1000.00元
+        else{
+            ctrlMsg.setAccount(ylcUserLogical.getAmount().toString());
+        }
 
 
         YlcResult result =  devCtrlService.remoteDevOn(ctrlMsg);

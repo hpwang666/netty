@@ -217,6 +217,10 @@ public class BusinessHandler extends ChannelInboundHandlerAdapter {
         ylcChargerStatus.setUpdateTime(new Date());
 
         ((YlcChargerStatusMapper)SpringBeanUtils.getApplicationContext().getBean(YlcChargerStatusMapper.class)).update(ylcChargerStatus);
+
+        ((IYlcChargerService)SpringBeanUtils.getApplicationContext().getBean(IYlcChargerService.class)).updateStatus(result.getYlcDevMsg().getSerialNum(),
+                result.getYlcDevMsg().getYlcStatusMsg().getPlugStatus(),result.getYlcDevMsg().getYlcStatusMsg().getPlugHoming(),
+                result.getYlcDevMsg().getYlcStatusMsg().getSlotIn());
         result.setMessage("更新实时状态 ok");
     }
 

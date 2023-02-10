@@ -1,6 +1,7 @@
 package com.wwp.netty;
 
 import cn.hutool.core.util.ArrayUtil;
+import cn.hutool.core.util.ByteUtil;
 import cn.hutool.core.util.HexUtil;
 import com.wwp.devices.YlcDeviceMap;
 import com.wwp.model.Session;
@@ -80,9 +81,9 @@ public class YlcCtrlEncoder extends MessageToByteEncoder<YlcCtrlMsg> {  //1
         //propertiesBuf.put(Base64.getDecoder().decode(ctrl.getPhysId()));
         propertiesBuf.put(HexUtil.decodeHex(ctrl.getPhysicalNum()));
 
-        //propertiesBuf.put(Base64.getDecoder().decode(ctrl.getAccount()));
-        //转换成小端字节序
-        propertiesBuf.put(ArrayUtil.reverse(HexUtil.decodeHex(ctrl.getAccount())));
+
+        propertiesBuf.put(ByteUtil.intToBytes(Integer.parseInt(ctrl.getAccount())));
+
 
         byte[] forCRC =  Arrays.copyOfRange(propertiesBuf.array(),2,baseLen+2);//15角标是不包含的
         int crc = YlcStringUtils.crc(forCRC,baseLen);

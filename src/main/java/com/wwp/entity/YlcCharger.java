@@ -26,8 +26,15 @@ public class YlcCharger implements Serializable {
     //计费模型B64编码
     private String modelCode;
 
+
     //0x00：离线   0x01：故障  0x02：空闲  0x03：充电
     private Integer plugStatus;
+
+    // 0x00归位  0x01：未归位  0x02 未知
+    private Integer plugHoming;
+
+    //是否插枪 0x00 no   0x01 yes
+    private Integer  slotIn;
 
     private Integer errorCode;//故障代码
 

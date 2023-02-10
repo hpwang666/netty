@@ -7,6 +7,7 @@ import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Random;
 import java.util.stream.IntStream;
 
 public class YlcStringUtils {
@@ -293,6 +294,21 @@ public class YlcStringUtils {
         seq++;
         if(seq==9999) seq =0;
         sb.append(String.format("%04d", seq));
+        return sb.toString();
+    }
+
+    static public String genLogicalNum()
+    {
+        char[] chars = "0102030405060708090123456789".toCharArray();
+        int length = chars.length;
+
+        StringBuffer sb = new StringBuffer ();
+        sb.append("5800");
+        for (int i = 0; i < 12; i++){
+            char achar = chars[new Random().nextInt(length)];
+            sb.append(achar);
+        }
+
         return sb.toString();
     }
 }

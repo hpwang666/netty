@@ -106,11 +106,13 @@ CREATE TABLE `ylc_user_logical` (
   `id` varchar(32) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
   `user_id` varchar(32) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
   `logical_num` varchar(16) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL COMMENT '逻辑卡号',
-  `amount` bigint  NULL DEFAULT 0 COMMENT '账户金额--点2',
+  `amount` decimal(10, 3)  NULL DEFAULT 0 COMMENT '账户金额--分',
    PRIMARY KEY (`id`) USING BTREE,
    KEY `index_id` (`id`) USING BTREE,
    KEY `index_logical_num` (`logical_num`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+
+INSERT INTO `ylc_user_logical` VALUES ('1260112345646841122', '1111', '5800850052004230', 100);
 
 
 

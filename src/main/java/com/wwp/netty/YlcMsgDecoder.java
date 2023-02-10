@@ -323,8 +323,8 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
         msg.setSerialNum(YlcStringUtils.bcd2string(serialId));
 
         msg.setPlugNo((int)buffer.readUnsignedByte());
-        msg.setPlugStatus((int)buffer.readUnsignedByte());
 
+        buffer.skipBytes(1);//这里状态只描述了是否正常
 
         msg.setSuccess(true);
 
@@ -392,7 +392,7 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
 
 
         msg.setPlugNo((int)buffer.readUnsignedByte()); //枪号
-        msg.setPlugStatus((int)buffer.readUnsignedByte());//枪状态
+        ylcStatusMsg.setPlugStatus((int)buffer.readUnsignedByte());//枪状态
         ylcStatusMsg.setPlugHoming((int)buffer.readUnsignedByte());//是否归位
         ylcStatusMsg.setSlotIn((int)buffer.readUnsignedByte()); //是否插枪
 
@@ -402,7 +402,7 @@ public class YlcMsgDecoder  extends ReplayingDecoder<YlcMsgDecoder.DecoderState>
         ylcStatusMsg.setWireTmp((int)buffer.readUnsignedByte());
 
         System.out.println("流水号： "+ msg.getOrderNum());
-        System.out.println("枪状态 "+msg.getPlugStatus()+"  归位: "+ ylcStatusMsg.getPlugHoming()+"  插枪："+ ylcStatusMsg.getSlotIn());
+        System.out.println("枪状态 "+ylcStatusMsg.getPlugStatus()+"  归位: "+ ylcStatusMsg.getPlugHoming()+"  插枪："+ ylcStatusMsg.getSlotIn());
         System.out.println("电压： "+ ylcStatusMsg.getVoltage());
 
         for(index=0;index<8;index++)

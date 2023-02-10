@@ -3,6 +3,9 @@ package com.wwp.model;
 public class YlcStatusMsg {
 
 
+    //0x00：离线   0x01：故障  0x02：空闲  0x03：充电
+    private Integer plugStatus;
+
     // 0x00归位  0x01：未归位  0x02 未知
     private Integer plugHoming;
 
@@ -34,6 +37,12 @@ public class YlcStatusMsg {
     private Integer failure;
 
 
+    public void setPlugStatus(Integer plugStatus) {
+        this.plugStatus = plugStatus;
+    }
+    public Integer getPlugStatus() {
+        return plugStatus;
+    }
 
     public void setPlugHoming(Integer plugHoming) {
         this.plugHoming = plugHoming;

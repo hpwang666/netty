@@ -9,6 +9,7 @@ import com.wwp.entity.YlcChargerStatus;
 import com.wwp.entity.YlcOrder;
 import com.wwp.mapper.YlcChargerStatusMapper;
 import com.wwp.mapper.YlcOrderMapper;
+import com.wwp.mapper.YlcUserLogicalMapper;
 import com.wwp.service.IYlcChargerService;
 import com.wwp.service.impl.YlcChargerServiceImpl;
 import com.wwp.util.SpringBeanUtils;
@@ -26,6 +27,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.ComponentScan;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.Base64;
 import java.util.Date;
@@ -43,10 +46,10 @@ import static com.wwp.util.YlcStringUtils.parseByte2HexStr;
 @SpringBootTest(classes= MainApplication.class)
 public class MainApplicationTests {
     @Resource
-   YlcOrderMapper ylcOrderMapper;
-
-    @Resource
-    YlcChargerStatusMapper ylcChargerStatusMapper;
+    YlcUserLogicalMapper ylcUserLogicalMapper;
+//
+//    @Resource
+//    YlcChargerStatusMapper ylcChargerStatusMapper;
 
     public void testBean()
     {
@@ -174,10 +177,11 @@ public class MainApplicationTests {
 
     }
 
+    @Test
     public void testHutool()
     {
         byte[] src2={0x50,0x36,0x01,0x00};
-        Integer I1=100;
+        Integer I1=100000;
         String str3 = "A0860100";
 
         //字节数组转换为字符串
@@ -191,7 +195,7 @@ public class MainApplicationTests {
         //但是不用反转 直接小端模式
         System.out.println(ByteUtil.bytesToInt(b2));
 
-        System.out.println(HexUtil.encodeHexStr(ByteUtil.intToBytes(I1)));
+        System.out.println(HexUtil.encodeHexStr(ByteUtil.intToBytes(I1)));//转换出来一定是4个字节
 
 
         //当字节数组是小端序  可以转换成大端方便阅读
@@ -201,7 +205,7 @@ public class MainApplicationTests {
 
 
     }
-    @Test
+
     public void testTime()
     {
         short[] t ={0x98,0xB7,0x0E,0x11,0x10,0x03,0x14};
@@ -214,7 +218,12 @@ public class MainApplicationTests {
         ylcChargerStatus.setUpdateTime(new Date());
         ylcChargerStatus.setOrderNum("32010600213533012023020819120001");
 
-        ylcChargerStatusMapper.update(ylcChargerStatus);
+        //ylcChargerStatusMapper.update(ylcChargerStatus);
+        ylcUserLogicalMapper.updateUserAmount("1111",new BigDecimal("3410045").multiply(new BigDecimal("100")));
+        BigDecimal b1= ylcUserLogicalMapper.queryUserAmount("1111").divide(new BigDecimal("100")).setScale(2);
+
+        System.out.println(b1.toString());
+
 
 
 

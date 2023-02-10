@@ -4,6 +4,7 @@ import com.wwp.entity.YlcCharger;
 import com.wwp.mapper.YlcChargerMapper;
 import com.wwp.mapper.YlcOrderMapper;
 import com.wwp.service.IYlcChargerService;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -33,5 +34,12 @@ public class YlcChargerServiceImpl implements IYlcChargerService {
     public void updateTime(String serialNum, Date date)
     {
         ylcChargerMapper.updateTime(serialNum,date);
+    }
+
+    @Override
+    public void updateStatus(String serialNum, Integer plugStatus,
+                             Integer plugHoming, Integer slotIn)
+    {
+        ylcChargerMapper.updateStatus(serialNum,plugStatus,plugHoming,slotIn);
     }
 }

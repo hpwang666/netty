@@ -34,8 +34,7 @@ public class YlcDevMsg {
     //充电枪号 01 开始
     private Integer plugNo;
 
-    //0x00：离线   0x01：故障  0x02：空闲  0x03：充电
-    private Integer plugStatus;
+
 
 
 
@@ -169,12 +168,7 @@ public class YlcDevMsg {
         return plugNo;
     }
 
-    public void setPlugStatus(Integer plugStatus) {
-        this.plugStatus = plugStatus;
-    }
-    public Integer getPlugStatus() {
-        return plugStatus;
-    }
+
 
     public void setYlcStatusMsg(YlcStatusMsg ylcStatusMsg) {
         this.ylcStatusMsg = ylcStatusMsg;

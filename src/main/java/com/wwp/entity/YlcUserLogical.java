@@ -3,6 +3,7 @@ package com.wwp.entity;
 import com.wwp.common.annotation.Id;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 
 public class YlcUserLogical  implements Serializable {
@@ -15,8 +16,8 @@ public class YlcUserLogical  implements Serializable {
 
     private String logicalNum;
 
-    //账户余额
-    private java.math.BigInteger amount;
+    //账户余额  小数点2位
+    private java.math.BigDecimal amount;
 
 
     public void setId(String id) {
@@ -39,10 +40,10 @@ public class YlcUserLogical  implements Serializable {
     public String getLogicalNum() {
         return logicalNum;
     }
-    public void setAmount(BigInteger amount) {
+    public void setAmount(BigDecimal amount) {
         this.amount = amount;
     }
-    public BigInteger getAmount() {
+    public BigDecimal getAmount() {
         return amount;
     }
 }

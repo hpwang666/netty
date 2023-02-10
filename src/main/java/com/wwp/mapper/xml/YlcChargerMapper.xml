@@ -18,4 +18,14 @@
         where serial_num = #{serialNum}
     </update>
 
+    <update id="updateStatus">
+        update ylc_charger
+        <trim prefix="set" suffixOverrides=",">
+            <if test="plugStatus!=null">`plug_status`=#{plugStatus,jdbcType=INTEGER},</if>
+            <if test="plugHoming!=null">plug_homing=#{plugHoming,jdbcType=INTEGER},</if>
+            <if test="slotIn!=null">slot_in=#{slotIn,jdbcType=INTEGER},</if>
+        </trim>
+        WHERE serial_num =#{serialNum,jdbcType=VARCHAR}
+    </update>
+
 </mapper>

@@ -20,6 +20,7 @@ public class YlcOrder implements Serializable {
     //生成订单下发充电桩时的下发金额
     private Integer startAmount;
 
+
     //充电用电量
     private Integer totalKwh;
 

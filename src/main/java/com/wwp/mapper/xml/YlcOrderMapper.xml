@@ -12,8 +12,8 @@
     <update id="update" parameterType="com.wwp.entity.YlcOrder">
         update ylc_order
         <trim prefix="set" suffixOverrides=",">
-            <if test="totalKwh!=null">`total_kwh`=#{totalKwh,jdbcType=INT},</if>
-            <if test="totalCost!=null">total_cost=#{totalCost,jdbcType=INT},</if>
+            <if test="totalKwh!=null">`total_kwh`=#{totalKwh,jdbcType=INTEGER},</if>
+            <if test="totalCost!=null">total_cost=#{totalCost,jdbcType=INTEGER},</if>
             <if test="orderTime!=null">order_time=#{orderTime,jdbcType=TIMESTAMP},</if>
             <if test="stopType!=null">stop_type=#{stopType,jdbcType=TINYINT},</if>
             <if test="settleFlag!=null">settle_flag=#{settleFlag,jdbcType=TINYINT},</if>

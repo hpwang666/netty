@@ -177,7 +177,7 @@ public class BusinessHandler extends ChannelInboundHandlerAdapter {
             result.setResult(ylcFeeModel);
             //businessFuture.setSuccess(new YlcResult<FeeModel>(true,feeModel,"ok"));
         }
-        result.setMessage("获取数据编码 ok");
+        result.setMessage("获取分段电费 ok");
     }
 
 
@@ -190,6 +190,7 @@ public class BusinessHandler extends ChannelInboundHandlerAdapter {
         ylcOrder.setSerialNum(result.getYlcDevMsg().getSerialNum());
         ylcOrder.setPlugNo(result.getYlcDevMsg().getPlugNo());
         ylcOrder.setPhysicalNum(result.getYlcDevMsg().getPhysicalNum());
+        ylcOrder.setSettleFlag(0);
         ((YlcOrderMapper)SpringBeanUtils.getApplicationContext().getBean(YlcOrderMapper.class)).add(ylcOrder);
 
         result.getYlcDevMsg().setOrderNum(orderNum);

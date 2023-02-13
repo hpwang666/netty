@@ -2,6 +2,8 @@ package com.wwp.controller;
 
 import com.wwp.devices.YlcDeviceMap;
 import com.wwp.entity.YlcUserLogical;
+import com.wwp.entity.YlcUserOrder;
+import com.wwp.mapper.YlcUserOrderMapper;
 import com.wwp.model.YlcCtrlMsg;
 import com.wwp.model.YlcResult;
 import com.wwp.service.IYlcCtrlService;
@@ -22,6 +24,8 @@ public class YlcCharger {
     @Resource
     IYlcUserLogicService ylcUserLogicService;
 
+
+
     @GetMapping("/channelList")
     public List<String> queryChannelList() {
 
@@ -39,6 +43,8 @@ public class YlcCharger {
         ctrlMsg.setPlugNo(1);
 
         YlcUserLogical ylcUserLogical = ylcUserLogicService.queryByUserId("1111");
+
+        ctrlMsg.setUserId("1111");
         ctrlMsg.setLogicNum(ylcUserLogical.getLogicalNum());//0000001000000573
         ctrlMsg.setPhysicalNum(ylcUserLogical.getLogicalNum());//00000000D14B0A54
 

@@ -25,7 +25,7 @@ public class YlcChargerServiceImpl implements IYlcChargerService {
     }
 
     @Override
-    public YlcCharger getDevChargerBySerialNum(String serialNum)
+    public YlcCharger getYlcChargerBySerialNum(String serialNum)
     {
         return ylcChargerMapper.getDevCharger(serialNum);
     }

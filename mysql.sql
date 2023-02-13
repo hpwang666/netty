@@ -63,7 +63,7 @@ CREATE TABLE `ylc_order` (
   `total_cost` int  NULL DEFAULT NULL COMMENT '消费金额--点4',
   `order_time` datetime NULL DEFAULT NULL COMMENT '交易日期',
   `physical_num` varchar(16) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '物理卡号',
-  `stop_type` tinyint(1) NULL DEFAULT NULL COMMENT '停止原因',
+  `stop_type` int NULL DEFAULT NULL COMMENT '停止原因',
   `settle_flag` tinyint(1) NULL DEFAULT NULL COMMENT '结算标志 0--未结算   1--结算',
    PRIMARY KEY (`id`) USING BTREE,
    KEY `index_id` (`id`) USING BTREE,
@@ -95,7 +95,7 @@ DROP TABLE IF EXISTS `ylc_user_order`;
 CREATE TABLE `ylc_user_order` (
   `id` varchar(32) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
   `user_id` varchar(32) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
-  `order_id` varchar(32) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '交易流水号',
+  `order_num` varchar(32) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '交易流水号',
    PRIMARY KEY (`id`) USING BTREE,
    KEY `index_id` (`id`) USING BTREE,
    KEY `index_order_id` (`order_id`) USING BTREE
@@ -106,7 +106,7 @@ CREATE TABLE `ylc_user_logical` (
   `id` varchar(32) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
   `user_id` varchar(32) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
   `logical_num` varchar(16) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL COMMENT '逻辑卡号',
-  `amount` decimal(10, 3)  NULL DEFAULT 0 COMMENT '账户金额--分',
+  `amount` decimal(10, 0)  NULL DEFAULT 0 COMMENT '账户金额--分',
    PRIMARY KEY (`id`) USING BTREE,
    KEY `index_id` (`id`) USING BTREE,
    KEY `index_logical_num` (`logical_num`) USING BTREE

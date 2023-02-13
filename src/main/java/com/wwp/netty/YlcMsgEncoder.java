@@ -305,6 +305,8 @@ public class YlcMsgEncoder extends MessageToByteEncoder<YlcResult> {  //1
         System.out.println(" ");
         System.out.println("交易流水号："+msg.getOrderNum());
 
+        System.out.println("物理卡号: "+msg.getPhysicalNum());
+
         System.out.println("总电量："+ msg.getYlcRecordMsg().getRecordTotalKwh());
 
         System.out.println("计损电量："+ msg.getYlcRecordMsg().getLossTotalKwh());
@@ -312,6 +314,8 @@ public class YlcMsgEncoder extends MessageToByteEncoder<YlcResult> {  //1
         System.out.println("花费金额："+ msg.getYlcRecordMsg().getTotalCost());
 
         System.out.println("停止原因："+ msg.getYlcRecordMsg().getStopType());
+
+        System.out.println("启动方式："+msg.getYlcRecordMsg().getTradeType());
 
     }
 }

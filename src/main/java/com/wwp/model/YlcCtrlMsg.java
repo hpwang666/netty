@@ -10,7 +10,7 @@ public class YlcCtrlMsg {
     private String orderNum;
     private String logicNum;//逻辑卡号用于显示在桩屏幕上便于用户核对卡信息
     private String physicalNum;//读卡器读取到的卡号为“物理卡号” 用于电桩与服务器交互
-    private Date date;
+    private String userId;
 
     //账户余额 4字节bin码---->b64编码
     private String account;
@@ -37,6 +37,14 @@ public class YlcCtrlMsg {
         return plugNo;
     }
 
+    public void setOrderNum(String orderNum) {
+        this.orderNum = orderNum;
+    }
+
+    public String getOrderNum() {
+        return orderNum;
+    }
+
     public void setLogicNum(String logicNum) {
         this.logicNum = logicNum;
     }
@@ -56,5 +64,13 @@ public class YlcCtrlMsg {
     }
     public String getAccount() {
         return account;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public String getUserId() {
+        return userId;
     }
 }

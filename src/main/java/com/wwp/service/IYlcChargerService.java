@@ -6,7 +6,7 @@ import java.util.Date;
 
 public interface IYlcChargerService {
      void add(YlcCharger ylcCharger);
-     YlcCharger getDevChargerBySerialNum(String serialNum);
+     YlcCharger getYlcChargerBySerialNum(String serialNum);
 
      //由心跳进行更新
      void updateTime(String serialNum, Date date);

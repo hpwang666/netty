@@ -11,7 +11,17 @@ public class YlcUserOrder implements Serializable {
     private String id;
 
     private String userId;
-    private String orderId;
+    private String orderNum;
+
+    public YlcUserOrder(){
+        super();
+    }
+
+    public YlcUserOrder(String userId,String orderNum){
+
+        this.userId = userId;
+        this.orderNum = orderNum;
+    }
 
     public void setId(String id) {
         this.id = id;
@@ -29,11 +39,11 @@ public class YlcUserOrder implements Serializable {
         return userId;
     }
 
-    public void setOrderId(String orderId) {
-        this.orderId = orderId;
+    public void setOrderNum(String orderNum) {
+        this.orderNum = orderNum;
     }
 
-    public String getOrderId() {
-        return orderId;
+    public String getOrderNum() {
+        return orderNum;
     }
 }

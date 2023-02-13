@@ -4,12 +4,12 @@
 
 
     <insert id="add" parameterType="com.wwp.entity.YlcCharger">
-        INSERT INTO dev_charger set id=#{id} ,serial_num=#{serialNum},depart_id=#{departId},`type`=#{type},plugs=#{plugs},model_code=#{modelCode},
+        INSERT INTO ylc_charger set id=#{id} ,serial_num=#{serialNum},depart_id=#{departId},`type`=#{type},plugs=#{plugs},model_code=#{modelCode},
                                     plug_status=#{plugStatus}
     </insert>
 
     <select id="getDevCharger" resultType="com.wwp.entity.YlcCharger">
-		select * from  dev_charger where serial_num = #{serialNum}
+		select * from  ylc_charger where serial_num = #{serialNum}
 	</select>
 
     <update id="updateTime">

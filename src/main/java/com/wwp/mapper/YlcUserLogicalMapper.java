@@ -15,9 +15,9 @@ public interface YlcUserLogicalMapper {
 
     BigDecimal queryUserAmount(String userId);
 
-    @Select("select physical_num from user_logical where user_id = #{userId}")
+    @Select("select physical_num from ylc_user_logical where user_id = #{userId}")
     String queryUserPhysicalNum(String userId);
 
-    @Select("select * from user_logical where user_id = #{userId}")
+    @Select("select * from ylc_user_logical where user_id = #{userId}")
     YlcUserLogical queryByUserId(String userId);
 }

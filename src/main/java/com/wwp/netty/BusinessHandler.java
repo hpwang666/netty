@@ -1,14 +1,11 @@
 package com.wwp.netty;
 
-import cn.hutool.core.date.DateTime;
 import com.wwp.devices.YlcDeviceMap;
-import com.wwp.entity.YlcCharger;
-import com.wwp.entity.YlcChargerStatus;
-import com.wwp.entity.YlcFeeModel;
-import com.wwp.entity.YlcOrder;
+import com.wwp.entity.*;
 import com.wwp.mapper.YlcChargerStatusMapper;
 import com.wwp.mapper.YlcFeeModelMapper;
 import com.wwp.mapper.YlcOrderMapper;
+import com.wwp.mapper.YlcUserOrderMapper;
 import com.wwp.model.Session;
 import com.wwp.model.YlcDevMsg;
 
@@ -17,6 +14,7 @@ import com.wwp.model.YlcResult;
 import com.wwp.service.IYlcChargerService;
 import com.wwp.service.IYlcFeeModelService;
 import com.wwp.service.IYlcOrderService;
+import com.wwp.service.IYlcUserLogicService;
 import com.wwp.service.impl.YlcChargerServiceImpl;
 import com.wwp.service.impl.YlcOrderServiceImpl;
 import com.wwp.util.SpringBeanUtils;
@@ -25,6 +23,8 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
 import io.netty.util.concurrent.*;
+
+import java.math.BigDecimal;
 import java.util.Date;
 
 import static com.wwp.model.YlcMsgType.*;
@@ -122,7 +122,7 @@ public class BusinessHandler extends ChannelInboundHandlerAdapter {
 //                }
                 YlcResult result = (YlcResult)msg;
                 YlcDevMsg inMsg = result.getYlcDevMsg();
-                YlcCharger ylcCharger =  ylcChargerService.getDevChargerBySerialNum(inMsg.getSerialNum());
+                YlcCharger ylcCharger =  ylcChargerService.getYlcChargerBySerialNum(inMsg.getSerialNum());
 
                 if(ylcCharger !=null){
                     //System.out.println("charger: " + devCharger.getDepartId());
@@ -159,6 +159,7 @@ public class BusinessHandler extends ChannelInboundHandlerAdapter {
                     upStatusHandle(result);break;
                 case RECORD:
                     recordHandle(result);break;
+
                 default:break;
             }
         }
@@ -236,6 +237,19 @@ public class BusinessHandler extends ChannelInboundHandlerAdapter {
         ylcOrder.setOrderTime(result.getYlcDevMsg().getYlcRecordMsg().getBusinessDate());
 
         ((YlcOrderServiceImpl)SpringBeanUtils.getApplicationContext().getBean(IYlcOrderService.class)).update(ylcOrder);
+
+
+        //核减金额
+        if(result.getYlcDevMsg().getYlcRecordMsg().getTradeType()==1) {//app
+
+            String userId = ((YlcUserOrderMapper)SpringBeanUtils.getApplicationContext().getBean(YlcUserOrderMapper.class)).queryUserIdByOrderNum(result.getYlcDevMsg().getOrderNum());
+            if(userId!=null&&!userId.equals("")){
+                BigDecimal userAmount = ((IYlcUserLogicService)SpringBeanUtils.getApplicationContext().getBean(IYlcUserLogicService.class)).queryUserAmount(userId);
+                System.out.println("用户余额："+userAmount+",核减："+ylcOrder.getTotalCost()/100);
+                ((IYlcUserLogicService)SpringBeanUtils.getApplicationContext().getBean(IYlcUserLogicService.class)).decreaseUserAmount(userId,new BigDecimal(ylcOrder.getTotalCost()).divide(new BigDecimal("100").setScale(0)));
+            }
+        }
+
         result.setMessage("账单结算更新 ok");
     }
 }

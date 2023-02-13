@@ -74,7 +74,7 @@ public class YlcCtrlEncoder extends MessageToByteEncoder<YlcCtrlMsg> {  //1
         propertiesBuf.put((byte)0x34);
 
 
-        propertiesBuf.put(YlcStringUtils.string2bcd(  YlcStringUtils.genOrderNum(ctrl.getSerialNum(),ctrl.getPlugNo())  ));
+        propertiesBuf.put(YlcStringUtils.string2bcd(  ctrl.getOrderNum()  ));
         propertiesBuf.put(YlcStringUtils.string2bcd(ctrl.getSerialNum()));
         propertiesBuf.put((byte)(ctrl.getPlugNo()&0xff));
         propertiesBuf.put(YlcStringUtils.string2bcd(ctrl.getLogicNum()));

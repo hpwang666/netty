@@ -1,5 +1,8 @@
 package com.wwp;
 
+import cn.hutool.core.date.DatePattern;
+import cn.hutool.core.date.DateUnit;
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.checksum.crc16.CRC16XModem;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ByteUtil;
@@ -12,6 +15,7 @@ import com.wwp.mapper.YlcOrderMapper;
 import com.wwp.mapper.YlcUserLogicalMapper;
 import com.wwp.service.IYlcChargerService;
 import com.wwp.service.impl.YlcChargerServiceImpl;
+import com.wwp.service.impl.YlcUserLogicServiceImpl;
 import com.wwp.util.SpringBeanUtils;
 import com.wwp.util.YlcStringUtils;
 import io.netty.buffer.ByteBuf;
@@ -46,24 +50,20 @@ import static com.wwp.util.YlcStringUtils.parseByte2HexStr;
 @SpringBootTest(classes= MainApplication.class)
 public class MainApplicationTests {
     @Resource
-    YlcUserLogicalMapper ylcUserLogicalMapper;
+    YlcUserLogicServiceImpl ylcUserLogicServiceImpl;
 //
-//    @Resource
-//    YlcChargerStatusMapper ylcChargerStatusMapper;
+    @Resource
+    YlcChargerServiceImpl ylcChargerService;
 
+    @Test
     public void testBean()
     {
-        IYlcChargerService devChargerService =(IYlcChargerService) SpringBeanUtils.getApplicationContext().getBean(YlcChargerServiceImpl.class);
-        YlcCharger ylcCharger = devChargerService.getDevChargerBySerialNum("32010203040506");
-        System.out.println("charger: " + ylcCharger.getDepartId());
+        YlcCharger ylcCharger = ylcChargerService.getYlcChargerBySerialNum("32010600213533");
+        Date d = DateUtil.parse("2023-02-12 16:45:23");
+        if(ylcCharger!=null){
+            System.out.println(DateUtil.format(ylcCharger.getUpdateTime(),DatePattern.NORM_DATETIME_PATTERN) +"   "+DateUtil.between(ylcCharger.getUpdateTime(), new Date(),DateUnit.SECOND));
+        }
 
-        YlcOrder ylcOrder = new YlcOrder();
-        ylcOrder.setOrderNum(YlcStringUtils.genOrderNum("32010203040506",1));
-        ylcOrder.setSerialNum("32010203040506");
-        ylcOrder.setPhysicalNum("32010203040506");
-        ylcOrder.setPlugNo(1);
-
-        ((YlcOrderMapper)SpringBeanUtils.getApplicationContext().getBean(YlcOrderMapper.class)).add(ylcOrder);
     }
 
     public  void testServer()
@@ -177,7 +177,7 @@ public class MainApplicationTests {
 
     }
 
-    @Test
+
     public void testHutool()
     {
         byte[] src2={0x50,0x36,0x01,0x00};
@@ -219,10 +219,10 @@ public class MainApplicationTests {
         ylcChargerStatus.setOrderNum("32010600213533012023020819120001");
 
         //ylcChargerStatusMapper.update(ylcChargerStatus);
-        ylcUserLogicalMapper.updateUserAmount("1111",new BigDecimal("3410045").multiply(new BigDecimal("100")));
-        BigDecimal b1= ylcUserLogicalMapper.queryUserAmount("1111").divide(new BigDecimal("100")).setScale(2);
+//        ylcUserLogicalMapper.updateUserAmount("1111",new BigDecimal("3410045").multiply(new BigDecimal("100")));
+//        BigDecimal b1= ylcUserLogicalMapper.queryUserAmount("1111").divide(new BigDecimal("100")).setScale(2);
 
-        System.out.println(b1.toString());
+      //  System.out.println(b1.toString());
 
 
 
